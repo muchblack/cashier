@@ -1,1 +1,1 @@
-# 這是Laravell + inertia.js + Vue.Js3的基礎專案
+# 這是 結帳系統的專案
