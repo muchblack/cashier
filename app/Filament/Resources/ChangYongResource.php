@@ -23,6 +23,16 @@ class ChangYongResource extends Resource
     protected static ?string $modelLabel = "常用面額";
     protected static ?string $navigationIcon = 'heroicon-s-currency-dollar';
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        if(!auth()->user()->user_role === 'admin')
+        {
+            $query->where('owner_id', auth()->user()->id);
+        }
+        return $query;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -43,7 +53,7 @@ class ChangYongResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('price')
                     ->label('常用面額')
-                    ->money()
+                    ->money('TWD')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

@@ -22,6 +22,16 @@ class ItemTypeResource extends Resource
     protected static ?string $modelLabel = "商品類別";
     protected static ?string $navigationIcon = 'heroicon-m-funnel';
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        if(!auth()->user()->user_role === 'admin')
+        {
+            $query->where('owner_id', auth()->user()->id);
+        }
+        return $query;
+    }
+
     public static function form(Form $form): Form
     {
         return $form

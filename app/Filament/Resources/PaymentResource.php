@@ -22,6 +22,16 @@ class PaymentResource extends Resource
     protected static ?string $modelLabel = "付款方式";
     protected static ?string $navigationIcon = 'heroicon-c-shopping-cart';
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        if(!auth()->user()->user_role === 'admin')
+        {
+            $query->where('owner_id', auth()->user()->id);
+        }
+        return $query;
+    }
+
     public static function form(Form $form): Form
     {
         return $form

@@ -23,6 +23,16 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-c-user-group';
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        if(!auth()->user()->user_role === 'admin')
+        {
+            $query->where('id', auth()->user()->id);
+        }
+        return $query;
+    }
+
     public static function form(Form $form): Form
     {
         return $form

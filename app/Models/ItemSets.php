@@ -18,11 +18,18 @@ class ItemSets extends Model
         'item_set_price',
         'item_set_stock',
         'item_set_list',
+        'item_quantities',
     ];
 
     protected $casts = [
         'item_set_list' => 'array',
+        'item_quantities' => 'array',
     ];
+
+    public function event()
+    {
+        return $this->belongsTo(Events::class, 'event_id', 'id');
+    }
 
     public function items()
     {

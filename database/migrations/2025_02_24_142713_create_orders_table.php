@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->integer('owner_id')->comment('使用者ID');
-            $table->integer('item_id')->comment('商品ID');
             $table->enum('order_type',['preorder','onsite'])->comment('訂單類別');
             $table->enum('status',['payed','nonpayed'])->comment('付款狀態 已付/未付');
             $table->integer('order_amount')->comment('訂單總價');

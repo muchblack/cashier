@@ -23,17 +23,29 @@ class EventsResource extends Resource
     protected static ?string $modelLabel = "場次";
     protected static ?string $navigationIcon = 'heroicon-s-rectangle-group';
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        if(!auth()->user()->user_role === 'admin')
+        {
+            $query->where('owner_id', auth()->user()->id);
+        }
+        return $query;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('event_name')
-                    ->label('場次名稱')
-                    ->required()
-                    ->maxLength(50),
-                Forms\Components\DatePicker::make('event_date')
-                    ->label('場次時間')
-                    ->required(),
+                Forms\Components\Section::make()->schema([
+                    Forms\Components\TextInput::make('event_name')
+                        ->label('場次名稱')
+                        ->required()
+                        ->maxLength(50),
+                    Forms\Components\DatePicker::make('event_date')
+                        ->label('場次時間')
+                        ->required(),
+                ])
             ]);
     }
 
@@ -41,6 +53,8 @@ class EventsResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('場次編號'),
                 Tables\Columns\TextColumn::make('event_name')
                     ->label('場次名稱')
                     ->searchable(),

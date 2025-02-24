@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('item_price')->comment('商品價格')->default(0);
             $table->integer('item_stock')->comment('商品庫存')->default(0);
             $table->integer('is_r18')->comment('是否爲R18商品')->default(0);
-            $table->text('item_img_url')->comment('商品圖片');
+            $table->text('item_img_url')->comment('商品圖片')->nullable();
             $table->integer('owner_id')->comment('產品擁有者');
             $table->timestamps();
         });

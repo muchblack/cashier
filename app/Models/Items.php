@@ -23,7 +23,12 @@ class Items extends Model
 
     public function itemType()
     {
+        return $this->belongsTo(ItemType::class, 'item_type_id', 'id');
+    }
 
+    public function event()
+    {
+        return $this->belongsTo(Events::class, 'event_id', 'id');
     }
     public function itemSet()
     {

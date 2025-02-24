@@ -8,7 +8,7 @@ class TestController
 {
     public function test()
     {
-        dump(auth()->user());
+        dump(auth()->user()->id);
         return Inertia::render('Welcome', []);
     }
 }
