@@ -8,6 +8,7 @@ class TestController
 {
     public function test()
     {
+        dump(auth()->user());
         return Inertia::render('Welcome', []);
     }
 }

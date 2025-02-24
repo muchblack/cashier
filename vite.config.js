@@ -18,7 +18,7 @@ export default defineConfig({
         }),
     ],
     server:{
-        host: "localhost",
+        host: "cashier.mycode.laravel.pri",
     },
     resolve: {
         alias: {
