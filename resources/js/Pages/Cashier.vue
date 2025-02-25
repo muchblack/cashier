@@ -1,5 +1,5 @@
 <template>
-    <div :class="['flex flex-col min-h-screen', isDarkMode ? 'dark-mode bg-gray-900' : 'bg-blue-500']">
+    <div :class="['flex flex-col h-screen', isDarkMode ? 'dark-mode bg-gray-900' : 'bg-blue-500']">
         <!-- 頂部導航欄 -->
         <header class="flex items-center justify-between p-4 bg-blue-500 text-white">
             <button class="text-3xl"></button>
@@ -11,119 +11,136 @@
             </div>
         </header>
 
-        <!-- 產品網格 -->
-        <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'grid grid-cols-2 gap-4 p-4']">
-            <div
-                v-for="item in productItems"
-                :key="item.id"
-                :class="[getColorForItem(item.id, isDarkMode), 'rounded-lg overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105']"
-                @click="addToCart(item.id)"
-            >
-                <div class="relative">
-                    <div
-                        :class="[
-                            getCartQuantity(item.id) > 0 ? 'bg-blue-600' : isDarkMode ? 'bg-gray-700' : 'bg-gray-500',
-                            'absolute top-2 left-2 w-10 h-10 rounded-full flex items-center justify-center text-white'
-                        ]"
-                    >
-                        {{ getCartQuantity(item.id) > 0 ? getCartQuantity(item.id) : 0 }}
-                    </div>
-                    <div class="bg-green-600 text-white p-2 m-2 rounded inline-block float-right">
-                        庫存:{{ item.item_stock - getCartQuantity(item.id)}}
-                    </div>
-                </div>
-                <div :class="[getColorForItem(item.id, isDarkMode), 'p-4 mt-12 text-white']">
-                    <h3 class="text-xl font-bold mb-2">{{ item.item_name }}</h3>
-                    <div class="flex items-center justify-between">
-                        <span class="text-xl">${{ item.item_price }}</span>
-                        <span v-if="item.is_r18" class="bg-red-600 text-white px-2 py-1 rounded-full text-sm">18+</span>
-                    </div>
-                </div>
-                <!-- 商品添加視覺反饋 -->
-                <div
-                    v-if="recentlyAdded === item.id"
-                    class="absolute inset-0 bg-white bg-opacity-30 flex items-center justify-center"
-                >
-                    <div class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
-                        已加入購物車
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 購物車 -->
-        <div :class="[isDarkMode ? 'bg-gray-700' : 'bg-gray-100', 'flex-grow p-4']">
-            <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'rounded-lg p-4 shadow']">
-                <div
-                    v-for="item in cartItems"
-                    :key="item.id"
-                    class="flex items-center justify-between py-4 border-b"
-                >
-                    <div class="flex items-center">
-                        <span :class="[isDarkMode ? 'text-gray-200' : 'text-gray-800', 'text-lg font-medium']">{{ item.item_name }}</span>
-                        <span
-                            v-if="item.is_r18"
-                            class="bg-red-600 text-white px-2 py-1 rounded-full text-sm ml-2"
-                        >18+</span>
-                    </div>
-                    <div class="flex items-center">
-                        <button
-                            @click.stop="decreaseQuantity(item.id)"
-                            :class="[isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-700', 'w-10 h-10 rounded-md flex items-center justify-center text-2xl']"
+        <!-- 主要內容區域 - 置中並設定70%寬度 -->
+        <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'flex-1 w-full flex justify-center overflow-hidden']">
+            <div class="w-full max-w-[70%] flex h-full">
+                <!-- 左側產品網格 -->
+                <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'w-2/3 p-4 overflow-y-auto']">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div
+                            v-for="item in productItems"
+                            :key="item.id"
+                            :class="[getColorForItem(item.id, isDarkMode), 'rounded-lg overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105']"
+                            @click="addToCart(item.id)"
                         >
-                            −
-                        </button>
-                        <div :class="[isDarkMode ? 'border-gray-600 text-gray-200' : 'border-gray-300', 'w-24 h-10 mx-2 border rounded-md flex items-center justify-center']">
-                            {{ item.quantity }}
+                            <div class="relative">
+                                <div
+                                    :class="[
+                                        getCartQuantity(item.id) > 0 ? 'bg-blue-600' : isDarkMode ? 'bg-gray-700' : 'bg-gray-500',
+                                        'absolute top-2 left-2 w-10 h-10 rounded-full flex items-center justify-center text-white'
+                                    ]"
+                                >
+                                    {{ getCartQuantity(item.id) > 0 ? getCartQuantity(item.id) : 0 }}
+                                </div>
+                                <div class="bg-green-600 text-white p-2 m-2 rounded inline-block float-right">
+                                    庫存:{{ item.item_stock - getCartQuantity(item.id)}}
+                                </div>
+                            </div>
+                            <div :class="[getColorForItem(item.id, isDarkMode), 'p-4 mt-12 text-white']">
+                                <h3 class="text-xl font-bold mb-2">{{ item.item_name }}</h3>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xl">${{ item.item_price }}</span>
+                                    <span v-if="item.is_r18" class="bg-red-600 text-white px-2 py-1 rounded-full text-sm">18+</span>
+                                </div>
+                            </div>
+                            <!-- 商品添加視覺反饋 -->
+                            <div
+                                v-if="recentlyAdded === item.id"
+                                class="absolute inset-0 bg-white bg-opacity-30 flex items-center justify-center"
+                            >
+                                <div class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
+                                    已加入購物車
+                                </div>
+                            </div>
                         </div>
-                        <button
-                            @click.stop="increaseQuantity(item.id)"
-                            :class="[isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-700', 'w-10 h-10 rounded-md flex items-center justify-center text-2xl']"
-                        >
-                            +
-                        </button>
                     </div>
                 </div>
 
-                <!-- 購物車為空的提示 -->
-                <div v-if="cartItems.length === 0" :class="[isDarkMode ? 'text-gray-400' : 'text-gray-500', 'py-8 text-center']">
-                    購物車是空的，點擊商品加入購物車
-                </div>
+                <!-- 右側購物車和結帳 -->
+                <div :class="[isDarkMode ? 'bg-gray-700' : 'bg-gray-100', 'w-1/3 p-4 overflow-y-auto border-l h-full', isDarkMode ? 'border-gray-600' : 'border-gray-300']">
+                    <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'rounded-lg p-4 shadow sticky top-4']">
+                        <h2 :class="[isDarkMode ? 'text-gray-200' : 'text-gray-800', 'text-xl font-bold mb-4 pb-2 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+                            購物車
+                        </h2>
 
-                <div v-else class="flex justify-between items-center mt-6 text-xl font-bold" :class="{ 'text-gray-200': isDarkMode }">
-                    <span>總計</span>
-                    <span>${{ total }}</span>
-                </div>
+                        <div
+                            v-for="item in cartItems"
+                            :key="item.id"
+                            class="flex flex-col py-3 border-b"
+                            :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'"
+                        >
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center">
+                                    <span :class="[isDarkMode ? 'text-gray-200' : 'text-gray-800', 'text-lg font-medium']">{{ item.item_name }}</span>
+                                    <span
+                                        v-if="item.is_r18"
+                                        class="bg-red-600 text-white px-2 py-1 rounded-full text-sm ml-2"
+                                    >18+</span>
+                                </div>
+                                <span :class="[isDarkMode ? 'text-gray-300' : 'text-gray-700', 'font-medium']">${{ item.item_price }}</span>
+                            </div>
+                            <div class="flex items-center justify-end">
+                                <button
+                                    @click.stop="decreaseQuantity(item.id)"
+                                    :class="[isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-700', 'w-8 h-8 rounded-md flex items-center justify-center text-lg']"
+                                >
+                                    −
+                                </button>
+                                <div :class="[isDarkMode ? 'border-gray-600 text-gray-200' : 'border-gray-300', 'w-16 h-8 mx-2 border rounded-md flex items-center justify-center']">
+                                    {{ item.quantity }}
+                                </div>
+                                <button
+                                    @click.stop="increaseQuantity(item.id)"
+                                    :class="[isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-700', 'w-8 h-8 rounded-md flex items-center justify-center text-lg']"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        </div>
 
-                <!-- 年齡驗證 -->
-                <div v-if="hasAdultItems" class="bg-red-600 text-white p-4 my-6 rounded-lg flex items-center">
-                    <span class="text-2xl mr-2">⚠️</span>
-                    <span>請確認購買者年滿18歲（民國 {{ r18Date }} 以前出生）</span>
-                </div>
+                        <!-- 購物車為空的提示 -->
+                        <div v-if="cartItems.length === 0" :class="[isDarkMode ? 'text-gray-400' : 'text-gray-500', 'py-8 text-center']">
+                            購物車是空的<br>點擊商品加入購物車
+                        </div>
 
-                <!-- 操作按鈕 -->
-                <div class="grid grid-cols-2 gap-4 mt-4">
-                    <button
-                        @click="clearCart"
-                        :class="[
-                            'py-3 px-4 rounded-lg border-2 border-pink-500 text-pink-500 text-lg font-medium',
-                            cartItems.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
-                        ]"
-                        :disabled="cartItems.length === 0"
-                    >
-                        清空
-                    </button>
-                    <button
-                        @click="showCheckoutModal"
-                        :class="[
-                            isDarkMode ? 'bg-blue-700' : 'bg-blue-500',
-                            'py-3 px-4 rounded-lg text-white text-lg font-medium',
-                            cartItems.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
-                        ]"
-                        :disabled="cartItems.length === 0"
-                    >
-                        結帳
-                    </button>
+                        <div v-else>
+                            <!-- 年齡驗證 -->
+                            <div v-if="hasAdultItems" class="bg-red-600 text-white p-3 my-4 rounded-lg flex items-center text-sm">
+                                <span class="text-xl mr-2">⚠️</span>
+                                <span>請確認購買者年滿18歲（民國 {{ r18Date }} 以前出生）</span>
+                            </div>
+
+                            <div class="flex justify-between items-center mt-6 text-xl font-bold" :class="{ 'text-gray-200': isDarkMode }">
+                                <span>總計</span>
+                                <span>${{ total }}</span>
+                            </div>
+                        </div>
+
+                        <!-- 操作按鈕 -->
+                        <div class="grid grid-cols-2 gap-4 mt-6">
+                            <button
+                                @click="clearCart"
+                                :class="[
+                                    'py-3 px-4 rounded-lg border-2 border-pink-500 text-pink-500 text-lg font-medium',
+                                    cartItems.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                                ]"
+                                :disabled="cartItems.length === 0"
+                            >
+                                清空
+                            </button>
+                            <button
+                                @click="showCheckoutModal"
+                                :class="[
+                                    isDarkMode ? 'bg-blue-700' : 'bg-blue-500',
+                                    'py-3 px-4 rounded-lg text-white text-lg font-medium',
+                                    cartItems.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                                ]"
+                                :disabled="cartItems.length === 0"
+                            >
+                                結帳
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -352,7 +369,7 @@ const clearCart = () => {
     saveCart()
 }
 
-// A根據商品ID和深夜模式獲取背景顏色
+// 根據商品ID和深夜模式獲取背景顏色
 const getColorForItem = (id, darkMode) => {
     const lightColors = {
         1: 'bg-red-800',
@@ -399,5 +416,26 @@ const getColorForItem = (id, darkMode) => {
 body,
 * {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* 自適應佈局 */
+@media (max-width: 1200px) {
+    .max-w-[70%] {
+    max-width: 90%;
+}
+}
+
+@media (max-width: 768px) {
+    .max-w-[70%] {
+    max-width: 100%;
+}
+
+    .flex-grow {
+        flex-direction: column;
+    }
+
+    .w-2/3, .w-1/3 {
+    width: 100%;
+}
 }
 </style>
