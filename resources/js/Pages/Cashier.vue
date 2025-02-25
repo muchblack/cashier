@@ -5,6 +5,33 @@
             <button class="text-3xl"></button>
             <h1 class="text-2xl font-bold">收銀台</h1>
             <div class="flex items-center">
+                <!-- 場次下拉選單 -->
+                <div class="relative mx-4">
+                    <select
+                        v-model="selectedSession"
+                        @change="handleSessionChange"
+                        :class="[
+                            isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-blue-600 text-white border-blue-400',
+                            'appearance-none border rounded-lg py-2 px-4 pr-8 cursor-pointer focus:outline-none focus:ring-2',
+                            isDarkMode ? 'focus:ring-blue-400' : 'focus:ring-blue-300'
+                        ]"
+                    >
+                        <option
+                            v-for="session in sessions"
+                            :key="session.id"
+                            :value="session.id"
+                            :class="isDarkMode ? 'bg-gray-700' : 'bg-blue-600'"
+                        >
+                            {{ session.event_name }}
+                        </option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white">
+                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                        </svg>
+                    </div>
+                </div>
+
                 <div class="ml-4 text-2xl cursor-pointer" @click="toggleDarkMode">
                     {{ isDarkMode ? '☀️' : '🌙' }}
                 </div>
@@ -16,7 +43,32 @@
             <div class="w-full max-w-[70%] flex h-full">
                 <!-- 左側產品網格 -->
                 <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'w-2/3 p-4 overflow-y-auto']">
-                    <div class="grid grid-cols-2 gap-4">
+                    <!-- 左側添加場次信息顯示 -->
+                    <div :class="[isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-blue-100 text-blue-800', 'mb-4 p-3 rounded-lg']">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">當前場次：{{ currentSessionName }}</span>
+                            <span class="text-sm" :class="isDarkMode ? 'text-gray-400' : 'text-blue-600'">
+                                {{ currentSessionTime }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 商品資料載入中的提示 -->
+                    <div v-if="isLoading" :class="[isDarkMode ? 'bg-gray-700' : 'bg-blue-50', 'p-8 rounded-lg flex flex-col items-center justify-center']">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 mb-4" :class="isDarkMode ? 'border-blue-400' : 'border-blue-600'"></div>
+                        <p :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">正在載入商品資料...</p>
+                    </div>
+
+                    <!-- 無商品資料的提示 -->
+                    <div v-else-if="productItems.length === 0" :class="[isDarkMode ? 'bg-gray-700' : 'bg-blue-50', 'p-8 rounded-lg flex flex-col items-center justify-center']">
+                        <div class="text-4xl mb-4">📦</div>
+                        <p :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'" class="text-center">
+                            此場次沒有可用的商品<br>
+                            請選擇其他場次或聯絡管理員新增商品
+                        </p>
+                    </div>
+
+                    <div v-else class="grid grid-cols-2 gap-4">
                         <div
                             v-for="item in productItems"
                             :key="item.id"
@@ -153,7 +205,10 @@
             :is-dark-mode="isDarkMode"
             :cart-items="cartItems"
             :total="total"
+            :r18Date="r18Date"
             :has-adult-items="hasAdultItems"
+            :session-id="selectedSession"
+            :session-name="currentSessionName"
             @close="closeCheckoutModal"
             @complete="handleTransactionComplete"
         />
@@ -161,16 +216,24 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { usePage } from '@inertiajs/vue3'
 import CheckoutModal from './Components/CheckoutModel.vue'
 
 // 從 Inertia props 中獲取商品資料
 const page = usePage()
-const productItems = computed(() => page.props.items || [])
 const quickAmounts = computed(() => page.props.quickAmounts || [])
 const r18Date = computed(() => page.props.r18Date)
 const payment = computed(() => page.props.payment)
+const userID = computed( () => page.props.user)
+
+// 場次資料
+const sessions = computed(() => page.props.events)
+
+// 商品資料狀態
+const productItems = ref([])
+const isLoading = ref(false)
+
 
 // 購物車資料（本地狀態）
 const cart = ref([])
@@ -180,25 +243,102 @@ const recentlyAdded = ref(null)
 const isDarkMode = ref(false)
 // 結帳彈出視窗狀態
 const isCheckoutModalVisible = ref(false)
+// 選中的場次
+const selectedSession = ref(1)
+
+// 計算當前場次名稱
+const currentSessionName = computed(() => {
+    const session = sessions.value.find(s => s.id === selectedSession.value)
+    return session ? session.event_name : '未選擇場次'
+})
+
+// 計算當前場次時間
+const currentSessionTime = computed(() => {
+    const session = sessions.value.find(s => s.id === selectedSession.value)
+    return session ? session.time : ''
+})
+
+// 處理場次變更
+const handleSessionChange = () => {
+    console.log('場次已變更為：', currentSessionName.value)
+    // 重新載入該場次的商品資料
+    fetchProductsBySession(selectedSession.value)
+    // 清空購物車，避免跨場次的商品混合
+    clearCart()
+    // 保存選擇的場次到本地儲存
+    localStorage.setItem('selectedSession', selectedSession.value)
+}
+
+// 根據場次ID擷取對應的商品資料
+const fetchProductsBySession = async (sessionId) => {
+    try {
+        isLoading.value = true
+        console.log(`正在擷取場次 ${sessionId} 的商品資料...`)
+
+        // 呼叫API獲取特定場次的商品資料
+        const response = await fetch(`/api/items/get/${userID.value}/${sessionId}`)
+
+        if (!response.ok) {
+            throw new Error(`無法獲取場次 ${sessionId} 的商品資料: ${response.status}`)
+        }
+
+        const data = await response.json()
+        console.log(data)
+
+        // 更新商品資料
+        productItems.value = data || []
+
+        console.log(`已成功載入 ${productItems.value.length} 個商品`)
+
+        // 重新初始化購物車（保持相同結構但數量為0）
+        initializeCart()
+    } catch (error) {
+        console.error('擷取商品資料時發生錯誤:', error)
+        // 顯示錯誤訊息給使用者
+        alert(`無法載入商品資料，請重新整理頁面或聯絡系統管理員。\n錯誤訊息: ${error.message}`)
+    } finally {
+        isLoading.value = false
+    }
+}
+
+// 初始化空購物車
+const initializeCart = () => {
+    cart.value = productItems.value.map(item => ({
+        id: item.id,
+        quantity: 0
+    }))
+    saveCart()
+}
 
 // 初始化購物車與深夜模式
-onMounted(() => {
-    // 載入購物車資料
-    const savedCart = localStorage.getItem('shoppingCart')
-    if (savedCart) {
-        cart.value = JSON.parse(savedCart)
-    } else {
-        // 初始化空購物車
-        cart.value = productItems.value.map(item => ({
-            id: item.id,
-            quantity: 0
-        }))
-    }
-
+onMounted(async () => {
     // 載入深夜模式偏好
     const darkModePref = localStorage.getItem('darkMode')
     if (darkModePref !== null) {
         isDarkMode.value = JSON.parse(darkModePref)
+    }
+
+    // 載入上次選擇的場次
+    const savedSession = localStorage.getItem('selectedSession')
+    if (savedSession !== null) {
+        selectedSession.value = parseInt(savedSession)
+    }
+
+    // 根據選中的場次載入商品資料
+    await fetchProductsBySession(selectedSession.value)
+
+    // 載入購物車資料（在商品資料載入後）
+    const savedCart = localStorage.getItem('shoppingCart')
+    if (savedCart) {
+        const parsedCart = JSON.parse(savedCart)
+        // 檢查購物車中的商品是否存在於當前場次
+        cart.value = parsedCart.filter(cartItem =>
+            productItems.value.some(product => product.id === cartItem.id)
+        )
+        saveCart() // 保存過濾後的購物車
+    } else {
+        // 初始化空購物車
+        initializeCart()
     }
 })
 
@@ -260,7 +400,10 @@ const handleTransactionComplete = async (transaction) => {
         change: transaction.change,
         note: transaction.note,
         hasAdultItems: hasAdultItems.value,
-        paymentMethod: transaction.paymentMethod
+        paymentMethod: transaction.paymentMethod,
+        sessionId: selectedSession.value,
+        sessionName: currentSessionName.value,
+        ownerId: userID.value
     }
     console.log('交易資料:', transactionRecord)
 
@@ -406,8 +549,16 @@ const getColorForItem = (id, darkMode) => {
 /* 深暗色背景下的輸入框和按鈕 */
 .dark-mode input,
 .dark-mode button,
-.dark-mode textarea {
+.dark-mode textarea,
+.dark-mode select {
     color-scheme: dark;
+}
+
+/* 下拉選單樣式 */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
 }
 
 /* 過渡效果 */

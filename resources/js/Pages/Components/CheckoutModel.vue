@@ -26,7 +26,7 @@
             <!-- 年齡驗證警告 -->
             <div v-if="hasAdultItems" class="bg-red-600 text-white p-3 mb-4 rounded-lg flex items-center text-sm">
                 <span class="text-xl mr-2">⚠️</span>
-                <span>請確認購買者年齡滿18歲（民國 96/01/28 以前出生）</span>
+                <span>請確認購買者年齡滿18歲（民國 {{ r18Date }} 以前出生）</span>
             </div>
 
             <!-- 支付方式選擇 -->
@@ -217,6 +217,9 @@ const props = defineProps({
     payment: {
         type: Array,
         default: () => []
+    },
+    r18Date: {
+        type: String
     }
 })
 

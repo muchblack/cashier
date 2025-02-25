@@ -222,6 +222,7 @@ class OrdersResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -243,6 +244,7 @@ class OrdersResource extends Resource
             'index' => Pages\ListOrders::route('/'),
             'create' => Pages\CreateOrders::route('/create'),
             'edit' => Pages\EditOrders::route('/{record}/edit'),
+            'view' => Pages\ViewOrder::route('/{record}'),
         ];
     }
 }
