@@ -11,6 +11,7 @@ class Orders extends Model
     protected $fillable = [
         'owner_id',
         'event_id',
+        'trade_no',
         'order_type',
         'status',
         'preorder_name',

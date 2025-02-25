@@ -46,8 +46,6 @@ class OrdersResource extends Resource
 
         //場次
         $events = Events::where('owner_id', $id)->get()->pluck('event_name','id')->toArray();
-        $events[0] = '全場次';
-        ksort($events);
 
         return $form
             ->schema([
