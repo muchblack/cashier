@@ -51,16 +51,4 @@ class CashierController
             'user' => auth()->id(),
         ]);
     }
-
-    public function getItems($userId, $eventId)
-    {
-        $eventId=[0, $eventId];
-
-        return response()->json(
-            Items::where('owner_id', $userId)
-                ->whereIn('event_id', $eventId)
-                ->get()
-                ->toArray()
-        );
-    }
 }

@@ -80,14 +80,16 @@
                                     {{ getCartQuantity(item.id) > 0 ? getCartQuantity(item.id) : 0 }}
                                 </div>
                                 <div class="bg-green-600 text-white p-2 m-2 rounded inline-block float-right">
-                                    庫存:{{ item.item_stock - getCartQuantity(item.id) }}
+                                    現場:{{ item.item_stock - getCartQuantity(item.id) }}
                                 </div>
                                 <div class="bg-yellow-600 text-white p-2 m-2 rounded inline-block float-right">
-                                    已預訂:{{ item.item_stock - getCartQuantity(item.id) }}
+                                    已預訂:{{ item.preOrder }}
                                 </div>
                             </div>
                             <div :class="[getColorForItem(item.id, isDarkMode), 'p-4 mt-12 text-white']">
                                 <h3 class="text-xl font-bold mb-2">{{ item.item_name }}</h3>
+                                <h4 class="text-m font-bold mb-2">{{ item.item_name_jp }}</h4>
+                                <h4 class="text-m font-bold mb-2">{{ item.item_name_en }}</h4>
                                 <div class="flex items-center justify-between">
                                     <span class="text-xl">${{ item.item_price }}</span>
                                     <span v-if="item.is_r18" class="bg-red-600 text-white px-2 py-1 rounded-full text-sm">18+</span>
@@ -299,10 +301,10 @@ const fetchProductsBySession = async (sessionId) => {
         }
 
         const data = await response.json();
-        console.log(data);
+        console.log(data.data);
 
         // 更新商品資料
-        productItems.value = data || [];
+        productItems.value = data.data || [];
 
         console.log(`已成功載入 ${productItems.value.length} 個商品`);
 
@@ -327,35 +329,50 @@ const initializeCart = () => {
 };
 
 // 建立預留單功能
-const createPreOrder = () => {
+const createPreOrder = async () => {
     // 準備預留單資料
     const preOrderData = {
+        id:generateTransactionId(),
         items: cartItems.value.map(item => ({
             id: item.id,
-            name: item.item_name,
-            price: item.item_price,
             quantity: item.quantity,
-            is_r18: item.is_r18 || false
         })),
         total: total.value,
         sessionId: selectedSession.value,
-        sessionName: currentSessionName.value,
-        userId: userID.value,
+        ownerId: userID.value,
         createdAt: new Date().toISOString()
     };
 
-    // 使用 Inertia 將資料傳送到預留單頁面
-    router.visit('/preorder/create', {
-        method: 'post',
-        data: { preOrderData },
-        preserveState: true,
-        onSuccess: () => {
-            // 成功建立預留單後，清空購物車
-            clearCart();
-            // 顯示成功訊息
-            alert('已成功建立預留單！');
+    try {
+        // 方法一：使用 fetch API
+        const response = await fetch('/api/order/preorder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(preOrderData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`API 回應錯誤: ${response.status}`);
         }
-    });
+
+        const result = await response.json();
+        console.log('API回應結果:', result);
+
+        // 顯示交易成功訊息
+        alert('已成功建立預留單！');
+
+        // 清空購物車
+        clearCart();
+
+        ////更新商品
+        await fetchProductsBySession(selectedSession.value)
+    } catch (error) {
+        console.error('傳送交易資料時發生錯誤:', error);
+        alert(`交易記錄儲存失敗，請聯絡系統管理員。錯誤訊息: ${error.message}`);
+    }
+
 };
 
 // 初始化購物車與深夜模式
@@ -481,6 +498,9 @@ const handleTransactionComplete = async (transaction) => {
 
         // 關閉彈出視窗
         closeCheckoutModal();
+
+        //更新商品
+        await fetchProductsBySession(selectedSession.value)
     } catch (error) {
         console.error('傳送交易資料時發生錯誤:', error);
         alert(`交易記錄儲存失敗，請聯絡系統管理員。錯誤訊息: ${error.message}`);

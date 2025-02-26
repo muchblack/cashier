@@ -13,7 +13,7 @@ return new class extends Migration
     {
         //
         Schema::table('orders', function (Blueprint $table) {
-            $table->string('trade_no')->comment('交易編號')->after('owner_id');
+            $table->string('trade_no')->comment('交易編號')->after('owner_id')->nullable();
         });
     }
 

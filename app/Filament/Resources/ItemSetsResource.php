@@ -25,10 +25,15 @@ class ItemSetsResource extends Resource
     protected static ?string $modelLabel = "商品組合";
     protected static ?string $navigationIcon = 'heroicon-s-square-3-stack-3d';
 
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->user_role === 'admin';
+    }
+
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        if(!auth()->user()->user_role === 'admin')
+        if(auth()->user()->user_role !== 'admin')
         {
             $query->where('owner_id', auth()->user()->id);
         }

@@ -8,6 +8,7 @@ use App\Models\Events;
 use App\Models\Items;
 use App\Models\Orders;
 use App\Models\Payment;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -29,9 +30,9 @@ class OrdersResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        if(!auth()->user()->user_role === 'admin')
+        if(auth()->user()->user_role !== 'admin')
         {
-            $query->where('owner_id', auth()->user()->id);
+            $query->where('owner_id', auth()->id());
         }
         return $query;
     }
@@ -83,7 +84,6 @@ class OrdersResource extends Resource
                         ->required(),
                     Forms\Components\TextInput::make('order_amount')
                         ->label('訂單金額')
-                        ->required()
                         ->numeric(),
                     Forms\Components\CheckboxList::make('item_lists')
                         ->label('訂單商品')
@@ -178,6 +178,7 @@ class OrdersResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $events = Events::where('owner_id', auth()->id())->get()->pluck('event_name', 'id')->toArray();
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('order_type')
@@ -219,6 +220,50 @@ class OrdersResource extends Resource
             ])
             ->filters([
                 //
+                Tables\Filters\SelectFilter::make('order_type')
+                    ->label('訂單種類')
+                    ->options([
+                        'preorder' => '預訂單',
+                        'onsite' => '現場單',
+                    ]),
+                Tables\Filters\SelectFilter::make('event_id')
+                    ->label('場次')
+                    ->options($events),
+                Tables\Filters\Filter::make('created_at')
+                    ->form([
+                        Forms\Components\DateTimePicker::make('created_at_from')
+                            ->label('建立時間(起始)')
+                            ->placeholder('請選擇起始時間')
+                            ->native(false),
+                        Forms\Components\DateTimePicker::make('created_at_to')
+                            ->label('建立時間（結束）')
+                            ->placeholder('請選擇結束時間')
+                            ->native(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['created_at_from'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_at_to'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if ($data['created_from'] ?? null) {
+                            $indicators[] = '起始時間: ' . Carbon::parse($data['created_from'])->toDateString();
+                        }
+
+                        if ($data['created_until'] ?? null) {
+                            $indicators[] = '結束時間: ' . Carbon::parse($data['created_until'])->toDateString();
+                        }
+
+                        return $indicators;
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
