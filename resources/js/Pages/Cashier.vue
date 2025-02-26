@@ -1,42 +1,37 @@
 <template>
     <div :class="['flex flex-col h-screen', isDarkMode ? 'dark-mode bg-gray-900' : 'bg-blue-500']">
-        <!-- 頂部導航欄 -->
-        <header class="flex items-center justify-between p-4 bg-blue-500 text-white">
-            <button class="text-3xl"></button>
-            <h1 class="text-2xl font-bold">收銀台</h1>
-            <div class="flex items-center">
-                <!-- 場次下拉選單 -->
-                <div class="relative mx-4">
-                    <select
-                        v-model="selectedSession"
-                        @change="handleSessionChange"
-                        :class="[
-                            isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-blue-600 text-white border-blue-400',
-                            'appearance-none border rounded-lg py-2 px-4 pr-8 cursor-pointer focus:outline-none focus:ring-2',
-                            isDarkMode ? 'focus:ring-blue-400' : 'focus:ring-blue-300'
-                        ]"
-                    >
-                        <option
-                            v-for="session in sessions"
-                            :key="session.id"
-                            :value="session.id"
-                            :class="isDarkMode ? 'bg-gray-700' : 'bg-blue-600'"
-                        >
-                            {{ session.event_name }}
-                        </option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white">
-                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                        </svg>
-                    </div>
-                </div>
+        <!-- 使用共用頂部導覽列 -->
+        <Navbar
+            pageTitle="收銀台"
+            menuTitle="功能選單"
+            :menuOpen="menuOpen"
+            :isDarkMode="isDarkMode"
+            :sessions="sessions"
+            :currentSession="selectedSession"
+            :showSessionSelector="true"
+            @toggleMenu="menuOpen = !menuOpen"
+            @toggleDarkMode="toggleDarkMode"
+            @sessionChange="handleSessionChange"
+        />
 
-                <div class="ml-4 text-2xl cursor-pointer" @click="toggleDarkMode">
-                    {{ isDarkMode ? '☀️' : '🌙' }}
+        <!-- 側邊選單 (收合時隱藏) -->
+        <div
+            v-if="menuOpen"
+            :class="[
+                isDarkMode ? 'bg-gray-800' : 'bg-blue-100',
+                'fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out pt-20'
+            ]"
+        >
+            <div class="px-4">
+                <div class="mb-4 p-2 rounded-lg" :class="isDarkMode ? 'bg-gray-700 text-white' : 'bg-blue-200'">
+                    <a href="/cashier" class="block p-2 rounded hover:bg-blue-500 hover:text-white">收銀台</a>
                 </div>
+                <div class="mb-4 p-2 rounded-lg" :class="isDarkMode ? 'bg-gray-700 text-white' : 'bg-blue-200'">
+                    <a href="/cashier/preorder" class="block p-2 rounded hover:bg-blue-500 hover:text-white">預留單</a>
+                </div>
+                <!-- 添加其他功能選單項目 -->
             </div>
-        </header>
+        </div>
 
         <!-- 主要內容區域 - 置中並設定70%寬度 -->
         <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'flex-1 w-full flex justify-center overflow-hidden']">
@@ -72,7 +67,7 @@
                         <div
                             v-for="item in productItems"
                             :key="item.id"
-                            :class="[getColorForItem(item.id, isDarkMode), 'rounded-lg overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105']"
+                            :class="[getColorForItem(item.id, isDarkMode), 'rounded-lg overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 relative']"
                             @click="addToCart(item.id)"
                         >
                             <div class="relative">
@@ -85,7 +80,10 @@
                                     {{ getCartQuantity(item.id) > 0 ? getCartQuantity(item.id) : 0 }}
                                 </div>
                                 <div class="bg-green-600 text-white p-2 m-2 rounded inline-block float-right">
-                                    庫存:{{ item.item_stock - getCartQuantity(item.id)}}
+                                    庫存:{{ item.item_stock - getCartQuantity(item.id) }}
+                                </div>
+                                <div class="bg-yellow-600 text-white p-2 m-2 rounded inline-block float-right">
+                                    已預訂:{{ item.item_stock - getCartQuantity(item.id) }}
                                 </div>
                             </div>
                             <div :class="[getColorForItem(item.id, isDarkMode), 'p-4 mt-12 text-white']">
@@ -173,8 +171,9 @@
                             <button
                                 @click="clearCart"
                                 :class="[
-                                    'py-3 px-4 rounded-lg border-2 border-pink-500 text-pink-500 text-lg font-medium',
-                                    cartItems.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                                    'py-3 px-4 rounded-lg border-2 text-lg font-medium transition-colors duration-200',
+                                    cartItems.length === 0 ? 'opacity-50 cursor-not-allowed' : '',
+                                    isDarkMode ? 'border-pink-700 text-pink-400 hover:bg-pink-900 hover:bg-opacity-30' : 'border-pink-500 text-pink-500 hover:bg-pink-50'
                                 ]"
                                 :disabled="cartItems.length === 0"
                             >
@@ -183,13 +182,26 @@
                             <button
                                 @click="showCheckoutModal"
                                 :class="[
-                                    isDarkMode ? 'bg-blue-700' : 'bg-blue-500',
-                                    'py-3 px-4 rounded-lg text-white text-lg font-medium',
-                                    cartItems.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                                    'py-3 px-4 rounded-lg text-white text-lg font-medium transition-colors duration-200',
+                                    cartItems.length === 0 ? 'opacity-50 cursor-not-allowed' : '',
+                                    isDarkMode ? 'bg-blue-700 hover:bg-blue-600' : 'bg-blue-500 hover:bg-blue-400'
                                 ]"
                                 :disabled="cartItems.length === 0"
                             >
                                 結帳
+                            </button>
+                        </div>
+
+                        <!-- 預留單按鈕 (新增) -->
+                        <div class="mt-4" v-if="cartItems.length > 0">
+                            <button
+                                @click="createPreOrder"
+                                :class="[
+                                    'w-full py-3 px-4 rounded-lg text-lg font-medium transition-colors duration-200',
+                                    isDarkMode ? 'bg-green-700 hover:bg-green-600 text-white' : 'bg-green-500 hover:bg-green-400 text-white'
+                                ]"
+                            >
+                                建立預留單
                             </button>
                         </div>
                     </div>
@@ -216,179 +228,215 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { usePage } from '@inertiajs/vue3'
-import CheckoutModal from './Components/CheckoutModel.vue'
+import { ref, computed, onMounted, watch } from 'vue';
+import { usePage, router } from '@inertiajs/vue3';
+import Navbar from './Components/Navbar.vue';
+import CheckoutModal from './Components/CheckoutModel.vue';
 
 // 從 Inertia props 中獲取商品資料
-const page = usePage()
-const quickAmounts = computed(() => page.props.quickAmounts || [])
-const r18Date = computed(() => page.props.r18Date)
-const payment = computed(() => page.props.payment)
-const userID = computed( () => page.props.user)
+const page = usePage();
+const quickAmounts = computed(() => page.props.quickAmounts || []);
+const r18Date = computed(() => page.props.r18Date);
+const payment = computed(() => page.props.payment);
+const userID = computed(() => page.props.user);
 
 // 場次資料
-const sessions = computed(() => page.props.events)
+const sessions = computed(() => page.props.events);
 
 // 商品資料狀態
-const productItems = ref([])
-const isLoading = ref(false)
+const productItems = ref([]);
+const isLoading = ref(false);
 
+// 側邊選單狀態
+const menuOpen = ref(false);
 
 // 購物車資料（本地狀態）
-const cart = ref([])
+const cart = ref([]);
 // 追蹤最近添加的商品
-const recentlyAdded = ref(null)
+const recentlyAdded = ref(null);
 // 深夜模式狀態
-const isDarkMode = ref(false)
+const isDarkMode = ref(false);
 // 結帳彈出視窗狀態
-const isCheckoutModalVisible = ref(false)
+const isCheckoutModalVisible = ref(false);
 // 選中的場次
-const selectedSession = ref(1)
+const selectedSession = ref(1);
 
 // 計算當前場次名稱
 const currentSessionName = computed(() => {
-    const session = sessions.value.find(s => s.id === selectedSession.value)
-    return session ? session.event_name : '未選擇場次'
-})
+    const session = sessions.value.find(s => s.id === selectedSession.value);
+    return session ? session.event_name : '未選擇場次';
+});
 
 // 計算當前場次時間
 const currentSessionTime = computed(() => {
-    const session = sessions.value.find(s => s.id === selectedSession.value)
-    return session ? session.time : ''
-})
+    const session = sessions.value.find(s => s.id === selectedSession.value);
+    return session ? session.time : '';
+});
 
 // 處理場次變更
-const handleSessionChange = () => {
-    console.log('場次已變更為：', currentSessionName.value)
+const handleSessionChange = (sessionId) => {
+    console.log('場次已變更為：', sessionId);
+    selectedSession.value = sessionId;
     // 重新載入該場次的商品資料
-    fetchProductsBySession(selectedSession.value)
+    fetchProductsBySession(sessionId);
     // 清空購物車，避免跨場次的商品混合
-    clearCart()
+    clearCart();
     // 保存選擇的場次到本地儲存
-    localStorage.setItem('selectedSession', selectedSession.value)
-}
+    localStorage.setItem('selectedSession', sessionId);
+};
 
 // 根據場次ID擷取對應的商品資料
 const fetchProductsBySession = async (sessionId) => {
     try {
-        isLoading.value = true
-        console.log(`正在擷取場次 ${sessionId} 的商品資料...`)
+        isLoading.value = true;
+        console.log(`正在擷取場次 ${sessionId} 的商品資料...`);
 
         // 呼叫API獲取特定場次的商品資料
-        const response = await fetch(`/api/items/get/${userID.value}/${sessionId}`)
+        const response = await fetch(`/api/items/get/${userID.value}/${sessionId}`);
 
         if (!response.ok) {
-            throw new Error(`無法獲取場次 ${sessionId} 的商品資料: ${response.status}`)
+            throw new Error(`無法獲取場次 ${sessionId} 的商品資料: ${response.status}`);
         }
 
-        const data = await response.json()
-        console.log(data)
+        const data = await response.json();
+        console.log(data);
 
         // 更新商品資料
-        productItems.value = data || []
+        productItems.value = data || [];
 
-        console.log(`已成功載入 ${productItems.value.length} 個商品`)
+        console.log(`已成功載入 ${productItems.value.length} 個商品`);
 
         // 重新初始化購物車（保持相同結構但數量為0）
-        initializeCart()
+        initializeCart();
     } catch (error) {
-        console.error('擷取商品資料時發生錯誤:', error)
+        console.error('擷取商品資料時發生錯誤:', error);
         // 顯示錯誤訊息給使用者
-        alert(`無法載入商品資料，請重新整理頁面或聯絡系統管理員。\n錯誤訊息: ${error.message}`)
+        alert(`無法載入商品資料，請重新整理頁面或聯絡系統管理員。\n錯誤訊息: ${error.message}`);
     } finally {
-        isLoading.value = false
+        isLoading.value = false;
     }
-}
+};
 
 // 初始化空購物車
 const initializeCart = () => {
     cart.value = productItems.value.map(item => ({
         id: item.id,
         quantity: 0
-    }))
-    saveCart()
-}
+    }));
+    saveCart();
+};
+
+// 建立預留單功能
+const createPreOrder = () => {
+    // 準備預留單資料
+    const preOrderData = {
+        items: cartItems.value.map(item => ({
+            id: item.id,
+            name: item.item_name,
+            price: item.item_price,
+            quantity: item.quantity,
+            is_r18: item.is_r18 || false
+        })),
+        total: total.value,
+        sessionId: selectedSession.value,
+        sessionName: currentSessionName.value,
+        userId: userID.value,
+        createdAt: new Date().toISOString()
+    };
+
+    // 使用 Inertia 將資料傳送到預留單頁面
+    router.visit('/preorder/create', {
+        method: 'post',
+        data: { preOrderData },
+        preserveState: true,
+        onSuccess: () => {
+            // 成功建立預留單後，清空購物車
+            clearCart();
+            // 顯示成功訊息
+            alert('已成功建立預留單！');
+        }
+    });
+};
 
 // 初始化購物車與深夜模式
 onMounted(async () => {
     // 載入深夜模式偏好
-    const darkModePref = localStorage.getItem('darkMode')
+    const darkModePref = localStorage.getItem('darkMode');
     if (darkModePref !== null) {
-        isDarkMode.value = JSON.parse(darkModePref)
+        isDarkMode.value = JSON.parse(darkModePref);
     }
 
     // 載入上次選擇的場次
-    const savedSession = localStorage.getItem('selectedSession')
+    const savedSession = localStorage.getItem('selectedSession');
     if (savedSession !== null) {
-        selectedSession.value = parseInt(savedSession)
+        selectedSession.value = parseInt(savedSession);
     }
 
     // 根據選中的場次載入商品資料
-    await fetchProductsBySession(selectedSession.value)
+    await fetchProductsBySession(selectedSession.value);
 
     // 載入購物車資料（在商品資料載入後）
-    const savedCart = localStorage.getItem('shoppingCart')
+    const savedCart = localStorage.getItem('shoppingCart');
     if (savedCart) {
-        const parsedCart = JSON.parse(savedCart)
+        const parsedCart = JSON.parse(savedCart);
         // 檢查購物車中的商品是否存在於當前場次
         cart.value = parsedCart.filter(cartItem =>
             productItems.value.some(product => product.id === cartItem.id)
-        )
-        saveCart() // 保存過濾後的購物車
+        );
+        saveCart(); // 保存過濾後的購物車
     } else {
         // 初始化空購物車
-        initializeCart()
+        initializeCart();
     }
-})
+});
 
 // 獲取商品在購物車中的數量
 const getCartQuantity = (id) => {
-    const cartItem = cart.value.find(item => item.id === id)
-    return cartItem ? cartItem.quantity : 0
-}
+    const cartItem = cart.value.find(item => item.id === id);
+    return cartItem ? cartItem.quantity : 0;
+};
 
 // 購物車中的商品（數量大於0）
 const cartItems = computed(() => {
     return cart.value
         .filter(cartItem => cartItem.quantity > 0)
         .map(cartItem => {
-            const productItem = productItems.value.find(p => p.id === cartItem.id)
+            const productItem = productItems.value.find(p => p.id === cartItem.id);
             return {
                 ...productItem,
                 quantity: cartItem.quantity
-            }
-        })
-})
+            };
+        });
+});
 
 // 計算總金額
 const total = computed(() => {
-    return cartItems.value.reduce((sum, item) => sum + (item.item_price * item.quantity), 0)
-})
+    return cartItems.value.reduce((sum, item) => sum + (item.item_price * item.quantity), 0);
+});
 
 // 檢查購物車中是否有成人商品
 const hasAdultItems = computed(() => {
-    return cartItems.value.some(item => item.is_r18)
-})
+    return cartItems.value.some(item => item.is_r18);
+});
 
 // 顯示結帳彈出視窗
 const showCheckoutModal = () => {
-    isCheckoutModalVisible.value = true
-}
+    isCheckoutModalVisible.value = true;
+};
 
 // 關閉結帳彈出視窗
 const closeCheckoutModal = () => {
-    isCheckoutModalVisible.value = false
-}
+    isCheckoutModalVisible.value = false;
+};
 
 // 生成唯一交易 ID
 const generateTransactionId = () => {
-    return 'TR-' + Date.now() + '-' + Math.floor(Math.random() * 1000)
-}
+    return 'TR-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+};
 
 // 處理交易完成
 const handleTransactionComplete = async (transaction) => {
-    console.log('交易完成：', transaction)
+    console.log('交易完成：', transaction);
 
     // 記錄交易資料
     const transactionRecord = {
@@ -404,11 +452,12 @@ const handleTransactionComplete = async (transaction) => {
         sessionId: selectedSession.value,
         sessionName: currentSessionName.value,
         ownerId: userID.value
-    }
-    console.log('交易資料:', transactionRecord)
+    };
+    console.log('交易資料:', transactionRecord);
 
-    // 儲存交易記錄並傳送到API
+    // 使用 Inertia 發送交易資料到後端
     try {
+        // 方法一：使用 fetch API
         const response = await fetch('/api/order/add', {
             method: 'POST',
             headers: {
@@ -433,84 +482,90 @@ const handleTransactionComplete = async (transaction) => {
         // 關閉彈出視窗
         closeCheckoutModal();
     } catch (error) {
-        console.error('傳送交易資料至API時發生錯誤:', error);
+        console.error('傳送交易資料時發生錯誤:', error);
         alert(`交易記錄儲存失敗，請聯絡系統管理員。錯誤訊息: ${error.message}`);
     }
-}
+};
 
 // 點擊商品添加到購物車
 const addToCart = (id) => {
-    const productItem = productItems.value.find(item => item.id === id)
-    const cartItem = cart.value.find(item => item.id === id)
+    const productItem = productItems.value.find(item => item.id === id);
+    const cartItem = cart.value.find(item => item.id === id);
 
     if (productItem && productItem.item_stock > 0 && cartItem) {
         if (cartItem.quantity < productItem.item_stock) {
-            cartItem.quantity += 1
+            cartItem.quantity += 1;
             // 保存購物車狀態
-            saveCart()
+            saveCart();
             // 顯示添加成功的視覺反饋
-            recentlyAdded.value = id
+            recentlyAdded.value = id;
             setTimeout(() => {
-                recentlyAdded.value = null
-            }, 500)
+                recentlyAdded.value = null;
+            }, 500);
+        } else {
+            // 顯示庫存不足提示
+            alert(`商品「${productItem.item_name}」庫存不足，無法再增加數量。`);
         }
     }
-}
+};
 
 // 增加商品數量
 const increaseQuantity = (id) => {
-    const productItem = productItems.value.find(item => item.id === id)
-    const cartItem = cart.value.find(item => item.id === id)
+    const productItem = productItems.value.find(item => item.id === id);
+    const cartItem = cart.value.find(item => item.id === id);
 
     if (productItem && cartItem && cartItem.quantity < productItem.item_stock) {
-        cartItem.quantity++
+        cartItem.quantity++;
         // 保存購物車狀態
-        saveCart()
+        saveCart();
         // 顯示添加成功的視覺反饋
-        recentlyAdded.value = id
+        recentlyAdded.value = id;
         setTimeout(() => {
-            recentlyAdded.value = null
-        }, 500)
+            recentlyAdded.value = null;
+        }, 500);
+    } else if (productItem && cartItem) {
+        // 顯示庫存不足提示
+        alert(`商品「${productItem.item_name}」庫存不足，無法再增加數量。`);
     }
-}
+};
 
 // 減少商品數量
 const decreaseQuantity = (id) => {
-    const cartItem = cart.value.find(item => item.id === id)
+    const cartItem = cart.value.find(item => item.id === id);
 
     if (cartItem && cartItem.quantity > 0) {
-        cartItem.quantity--
+        cartItem.quantity--;
         // 保存購物車狀態
-        saveCart()
+        saveCart();
         // 如果數量減為0，可以顯示移除的視覺反饋
         if (cartItem.quantity === 0) {
-            recentlyAdded.value = id
+            recentlyAdded.value = id;
             setTimeout(() => {
-                recentlyAdded.value = null
-            }, 500)
+                recentlyAdded.value = null;
+            }, 500);
         }
     }
-}
+};
 
 // 切換深夜模式
 const toggleDarkMode = () => {
-    isDarkMode.value = !isDarkMode.value
-    localStorage.setItem('darkMode', JSON.stringify(isDarkMode.value))
-}
+    isDarkMode.value = !isDarkMode.value;
+    localStorage.setItem('darkMode', JSON.stringify(isDarkMode.value));
+};
 
 // 保存購物車到 localStorage
 const saveCart = () => {
-    localStorage.setItem('shoppingCart', JSON.stringify(cart.value))
-}
+    localStorage.setItem('shoppingCart', JSON.stringify(cart.value));
+};
 
 // 清空購物車
 const clearCart = () => {
     cart.value.forEach(item => {
-        item.quantity = 0
-    })
+        item.quantity = 0;
+    });
     // 保存購物車狀態
-    saveCart()
-}
+    saveCart();
+};
 
 // 根據商品ID和深夜模式獲取背景顏色
 const getColorForItem = (id, darkMode) => {
@@ -520,7 +575,7 @@ const getColorForItem = (id, darkMode) => {
         3: 'bg-green-800',
         4: 'bg-amber-800',
         5: 'bg-purple-900'
-    }
+    };
 
     const darkColors = {
         1: 'bg-red-900',
@@ -528,12 +583,15 @@ const getColorForItem = (id, darkMode) => {
         3: 'bg-green-900',
         4: 'bg-amber-900',
         5: 'bg-purple-950'
-    }
+    };
+
+    // 取餘數確保每個商品都能對應到一個顏色（循環使用）
+    const colorIndex = (id % 5) || 5;
 
     return darkMode
-        ? (darkColors[id] || 'bg-gray-900')
-        : (lightColors[id] || 'bg-gray-800')
-}
+        ? (darkColors[colorIndex] || 'bg-gray-900')
+        : (lightColors[colorIndex] || 'bg-gray-800');
+};
 </script>
 
 <style>

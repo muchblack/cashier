@@ -53,4 +53,9 @@ class OrderController
             return ['status'=> 'F', 'msg' => $exception->getMessage()];
         }
     }
+
+    public function checkPreOrder(Request $request)
+    {
+
+    }
 }

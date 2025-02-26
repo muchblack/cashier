@@ -11,37 +11,45 @@ use Illuminate\Http\Request;
 
 class CashierController
 {
-    protected $user_id;
-
-    public function __construct()
-    {
-        $this->user_id = auth()->id();
-    }
 
     public function index()
     {
+        if(!auth()->check()){
+            return redirect()->to(route('filament.admin.auth.login'));
+        }
         //常用面額
-        $quickAmounts = ChangYong::where('owner_id', $this->user_id)->get()->pluck('price')->toArray();
+        $quickAmounts = ChangYong::where('owner_id', auth()->id())->get()->pluck('price')->toArray();
         //年紀判別
         $date = now()->subYears(18);
         $r18Date = ($date->year - 1911).'/'.$date->month.'/'.$date->day;
         //支付方式
-        $payment = Payment::where('owner_id', $this->user_id)->get()->toArray();
+        $payment = Payment::where('owner_id', auth()->id())->get()->toArray();
         //場次
-        $event = Events::where('owner_id', $this->user_id)->get()->toArray();
+        $event = Events::where('owner_id', auth()->id())->get()->toArray();
 
         return Inertia::render('Cashier', [
                 'quickAmounts' => $quickAmounts,
                 'r18Date' => $r18Date,
                 'payment' => $payment,
                 'events' => $event,
-                'user' => $this->user_id,
+                'user' => auth()->id(),
             ]
         );
     }
     public function show()
     {
         return Inertia::render('Show');
+    }
+
+    public function preorder()
+    {
+        //場次
+        $event = Events::where('owner_id', auth()->id())->get()->toArray();
+
+        return Inertia::render('PreOrder',[
+            'events' => $event,
+            'user' => auth()->id(),
+        ]);
     }
 
     public function getItems($userId, $eventId)

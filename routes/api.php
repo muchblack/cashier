@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
-
-Route::post('/order/add', [OrderController::class,'store']);
+Route::group(['prefix' => '/order'], function () {
+    Route::post('/add', [OrderController::class,'store']);
+    Route::post('/checkpreorder', [OrderController::class,'checkPreOrder']);
+});
 Route::get('/items/get/{userId}/{eventId}',[CashierController::class,'getItems']);

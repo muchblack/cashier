@@ -78,9 +78,10 @@ class ItemsResource extends Resource
                         ->prefix('$')
                         ->default(0),
                     Forms\Components\TextInput::make('item_stock')
-                        ->label('商品庫存')
+                        ->label('商品總庫存')
                         ->required()
                         ->numeric()
+                        ->helperText('請輸入此商品總庫存，數字會根據預購單和商品組合數量而定')
                         ->default(0),
                     Forms\Components\Toggle::make('is_r18')
                         ->label('是否爲R18商品')
