@@ -14,5 +14,6 @@ Route::group(['prefix' => '/order'], function () {
     Route::get('/getpreorder/{userId}/{eventId}', [OrderController::class,'getPreOrder']);
     Route::post('/checkpreorder/{orderID}', [OrderController::class,'checkPreOrder']);
     Route::post('/rollbackpreorder/{orderID}', [OrderController::class,'rollbackPreOrder']);
+    Route::post('/deletepreorder/{orderID}', [OrderController::class,'delPreOrder']);
 });
 Route::get('/items/get/{userId}/{eventId}',[ItemsController::class,'getItems']);

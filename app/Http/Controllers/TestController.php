@@ -8,6 +8,6 @@ class TestController
 {
     public function test()
     {
-        return Inertia::render('PreOrder', []);
+        return Inertia::render('Show', []);
     }
 }

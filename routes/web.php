@@ -10,6 +10,6 @@ Route::get('/', function () {
 Route::get('/test',[TestController::class,'test']);
 Route::group(['prefix'=>'cashier'],function(){
     Route::get('/',[CashierController::class,'index']);
-    Route::get('/show',[CashierController::class,'show']);
+    Route::get('/show/{eventId}/{userName}',[CashierController::class,'show']);
     Route::get('/preorder',[CashierController::class,'preorder']);
 });

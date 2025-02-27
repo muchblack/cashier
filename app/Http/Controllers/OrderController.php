@@ -101,12 +101,6 @@ class OrderController
         }
         catch (\Exception $e) {
             DB::rollBack();
-
-            Log::error('處理預留單時發生錯誤: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-                'reservation_id' => $orderID
-            ]);
-
             return response()->json([
                 'success' => false,
                 'message' => '處理預留單時發生錯誤: ' . $e->getMessage()
@@ -140,12 +134,6 @@ class OrderController
             ]);
         }catch (\Exception $e) {
             DB::rollBack();
-
-            Log::error('回退預留單時發生錯誤: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-                'reservation_id' => $orderID
-            ]);
-
             return response()->json([
                 'success' => false,
                 'message' => '回退預留單時發生錯誤: ' . $e->getMessage()
@@ -154,8 +142,33 @@ class OrderController
 
     }
 
-    public function delPreOrder(Request $request)
+    public function delPreOrder($orderID)
     {
+        try{
+            DB::beginTransaction();
+            $order = Orders::find($orderID);
+            $itemList = $order->item_quantities;
+            foreach($itemList as &$item)
+            {
+               $sellItems = Items::find($item['item_id']);
+               $sellItems->item_stock += $item['quantity'];
+               $sellItems->save();
+            }
+            $order->delete();
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'reservation' => [
+                    'id' => $order->id,
+                ]
+            ]);
+        }catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => '刪除預留單時發生錯誤: ' . $e->getMessage()
+            ], 500);
+        }
 
     }
 

@@ -114,6 +114,15 @@
                                         >
                                             處理
                                         </button>
+                                        <button
+                                            @click="processDeleteReservation(reservation.id)"
+                                            :class="[
+                                                    isDarkMode ? 'bg-red-700 hover:bg-blue-600' : 'bg-blue-500 hover:bg-blue-400',
+                                                    'text-white text-sm py-1 px-3 rounded transition-colors duration-200'
+                                                ]"
+                                        >
+                                            刪除
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -335,6 +344,8 @@ const processReservation = async (id) => {
 
                 // 從待處理預留單中移除
                 pendingReservations.value.splice(index, 1);
+
+                alert('預留單已處理')
             }
         } else {
             alert('處理預留單時發生錯誤: ' + response.data.message);
@@ -366,6 +377,8 @@ const processRollBackReservation = async (id) => {
 
                 // 從已處理預留單中移除
                 completedReservations.value.splice(index, 1);
+
+                alert('預留單已回退')
             }
         } else {
             alert('回退預留單時發生錯誤: ' + response.data.message);
@@ -376,6 +389,31 @@ const processRollBackReservation = async (id) => {
     }
 };
 
+const processDeleteReservation = async (id) => {
+    try {
+        // 使用 Axios 呼叫 API 處理預留單
+        const response = await axios.post(`/api/order/deletepreorder/${id}`, {
+            sessionId: selectedSession.value,
+            user_id: user.value,
+        });
+
+        if (response.data.success) {
+            // 找到指定的預留單
+            const index = pendingReservations.value.findIndex(item => item.id === id);
+            console.log(index)
+            if (index !== -1) {
+                // 從已處理預留單中移除
+                pendingReservations.value.splice(index, 1);
+                alert('預留單已刪除')
+            }
+        } else {
+            alert('刪除預留單時發生錯誤: ' + response.data.message);
+        }
+    } catch (error) {
+        console.error('刪除預留單時發生錯誤:', error);
+        alert(`刪除預留單時發生錯誤: ${error.response?.data?.message || error.message}`);
+    }
+};
 // 轉換舊格式預留單為新格式（處理後端 API 回傳的資料格式）
 const transformReservationData = (reservations) => {
     return reservations.map(reservation => {

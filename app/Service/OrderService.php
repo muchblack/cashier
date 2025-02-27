@@ -48,10 +48,7 @@ class OrderService
             $order->order_amount= $params['total'];
             $order->item_lists = $item_list;
             $order->item_quantities = $item_quantities;
-            if($type === 'preorder')
-            {
-                $order->preorder_name = $event->event_name.' 現場客人_'.time();
-            }
+            $order->preorder_name = $event->event_name.' 現場客人_'.time();
 
             $order->save();
             DB::commit();

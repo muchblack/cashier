@@ -17,7 +17,9 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\DB;
 
 class OrdersResource extends Resource
 {
@@ -268,6 +270,18 @@ class OrdersResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\ViewAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn (Model $record): bool => $record->order_type === 'preorder')
+                    ->after(function (Model $record) {
+                        DB::transaction(function () use ($record) {
+                            // 1. 更新產品庫存
+                            foreach ($record->item_quantities as $item) {
+                                $sellItems = Items::find($item['item_id']);
+                                $sellItems->item_stock += $item['quantity'];
+                                $sellItems->save();
+                            }
+                        });
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

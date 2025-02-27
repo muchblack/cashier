@@ -6,6 +6,7 @@ use App\Models\ChangYong;
 use App\Models\Events;
 use App\Models\Items;
 use App\Models\Payment;
+use App\Models\User;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 
@@ -36,9 +37,15 @@ class CashierController
             ]
         );
     }
-    public function show()
+    public function show($eventId, $userName)
     {
-        return Inertia::render('Show');
+        $user = User::where('name', $userName)->first();
+        $event = Events::find($eventId);
+        return Inertia::render('Show',[
+            'eventId' => $eventId,
+            'userId' => $user->id,
+            'currentVenue' => $event->event_name
+        ]);
     }
 
     public function preorder()
