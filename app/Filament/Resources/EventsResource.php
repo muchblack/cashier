@@ -62,6 +62,12 @@ class EventsResource extends Resource
                     ->label('場次時間')
                     ->date()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('storeUrl')
+                    ->label('庫存網址')
+                    ->getStateUsing(function ($record): string{
+                        return env('APP_URL').'cashier/show/'.$record->id.'/'.auth()->user()->name;
+                    })
+                    ->url( fn($record) => env('APP_URL').'cashier/show/'.$record->id.'/'.auth()->user()->name),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
