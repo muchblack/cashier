@@ -62,6 +62,17 @@
                     </div>
                 </div>
             </div>
+            <div class="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200">
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0 bg-primary-100 rounded-full p-1.5">
+                        <x-heroicon-o-calculator class="w-5 h-5 text-primary-600" />
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">備註</p>
+                        <p class="text-gray-600 mt-1">庫存分享頁面在建立完場次後，可在列表看見。</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="mt-6 p-3 bg-blue-50 rounded-lg border border-blue-200">

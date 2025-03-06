@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\EventsResource\Pages;
 use App\Filament\Resources\EventsResource\RelationManagers;
 use App\Models\Events;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -65,9 +66,15 @@ class EventsResource extends Resource
                 Tables\Columns\TextColumn::make('storeUrl')
                     ->label('庫存網址')
                     ->getStateUsing(function ($record): string{
-                        return env('APP_URL').'cashier/show/'.$record->id.'/'.auth()->user()->name;
+                        $owner = User::find($record->owner_id);
+                        return env('APP_URL').'cashier/show/'.$record->id.'/'.$owner->name;
                     })
-                    ->url( fn($record) => env('APP_URL').'cashier/show/'.$record->id.'/'.auth()->user()->name),
+                    ->url(
+                        function ($record) :string{
+                            $owner = User::find($record->owner_id);
+                            return env('APP_URL').'cashier/show/'.$record->id.'/'.$owner->name;
+                        }
+                    ),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

@@ -87,7 +87,7 @@ class ItemsResource extends Resource
                         ->label('是否爲R18商品')
                         ->required()
                         ->default(0),
-                    Forms\Components\FileUpload::make('item_img_url')
+                    Forms\Components\TextInput::make('item_img_url')
                         ->label('商品圖片'),
                 ])
             ]);
