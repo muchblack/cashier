@@ -56,7 +56,7 @@ class FilamentCreatUser extends MakeUserCommand
                 required: true,
             )),
 
-            'role' => $this->options['user_role'] ?? text(
+            'user_role' => $this->options['user_role'] ?? text(
                   label: 'User Role',
                   placeholder: 'admin / user',
                   required: true,
