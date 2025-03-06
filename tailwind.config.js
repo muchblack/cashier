@@ -14,6 +14,9 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            screens: {
+                'xs': {'max': '639px'},  // 新增 xs 斷點，代表小於 640px 的螢幕
+            }
         },
     },
     plugins: [],

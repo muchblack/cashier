@@ -33,11 +33,11 @@
             </div>
         </div>
 
-        <!-- 主要內容區域 - 置中並設定70%寬度 -->
+        <!-- 主要內容區域 - 根據螢幕尺寸自適應寬度 -->
         <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'flex-1 w-full flex justify-center overflow-hidden']">
-            <div class="w-full max-w-[70%] flex h-full">
+            <div class="w-full max-w-[70%] lg:max-w-[70%] md:max-w-[85%] sm:max-w-[95%] xs:max-w-[100%] flex h-full lg:flex-row md:flex-row sm:flex-col xs:flex-col">
                 <!-- 左側產品網格 -->
-                <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'w-2/3 p-4 overflow-y-auto']">
+                <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'lg:w-2/3 md:w-1/2 sm:w-full p-4 overflow-y-auto']">
                     <!-- 左側添加場次信息顯示 -->
                     <div :class="[isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-blue-100 text-blue-800', 'mb-4 p-3 rounded-lg']">
                         <div class="flex justify-between items-center">
@@ -63,11 +63,14 @@
                         </p>
                     </div>
 
-                    <div v-else class="grid grid-cols-2 gap-4">
+                    <div v-else class="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 xs:gap-2">
                         <div
                             v-for="item in productItems"
                             :key="item.id"
-                            :class="[getColorForItem(item.id, isDarkMode), 'rounded-lg overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 relative']"
+                            :class="[
+                                getColorForItem(item.id, isDarkMode),
+                                'rounded-lg overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 relative xs:text-sm'
+                            ]"
                             @click="addToCart(item.id)"
                         >
                             <div class="relative">
@@ -109,7 +112,7 @@
                 </div>
 
                 <!-- 右側購物車和結帳 -->
-                <div :class="[isDarkMode ? 'bg-gray-700' : 'bg-gray-100', 'w-1/3 p-4 overflow-y-auto border-l h-full', isDarkMode ? 'border-gray-600' : 'border-gray-300']">
+                <div :class="[ isDarkMode ? 'bg-gray-700' : 'bg-gray-100', 'w-full xs:w-full sm:w-full md:w-1/2 lg:w-1/3 p-4 xs:p-2 overflow-y-auto border-t xs:border-t sm:border-t lg:border-l lg:border-t-0',isDarkMode ? 'border-gray-600' : 'border-gray-300']">
                     <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'rounded-lg p-4 shadow sticky top-4']">
                         <h2 :class="[isDarkMode ? 'text-gray-200' : 'text-gray-800', 'text-xl font-bold mb-4 pb-2 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
                             購物車
@@ -648,23 +651,58 @@ body,
 }
 
 /* 自適應佈局 */
-@media (max-width: 1200px) {
+/* 自適應佈局 - 使用 Tailwind 的響應式類別替代 */
+@media (max-width: 1280px) {
     .max-w-[70%] {
-    max-width: 90%;
+    max-width: 85%;
 }
 }
 
 @media (max-width: 768px) {
     .max-w-[70%] {
+    max-width: 95%;
+}
+}
+
+@media (max-width: 640px) {
+    .max-w-[70%] {
     max-width: 100%;
 }
 
-    .flex-grow {
-        flex-direction: column;
+    /* 改善小螢幕上的間距 */
+    .p-4 {
+        padding: 0.75rem;
     }
 
-    .w-2/3, .w-1/3 {
-    width: 100%;
+    /* 改善小螢幕上的文字大小 */
+    .text-xl {
+        font-size: 1.1rem;
+    }
 }
+@media (max-width: 639px) {
+    /* 確保容器不會溢出 */
+    .w-full {
+        width: 100% !important;
+    }
+
+    /* 調整內邊距 */
+    .p-4 {
+        padding: 0.75rem !important;
+    }
+
+    /* 確保按鈕有足夠的點擊區域 */
+    button {
+        min-height: 40px;
+    }
+
+    /* 減小文字大小 */
+    .text-xl {
+        font-size: 1rem !important;
+    }
+
+    /* 確保容器內的元素排列正確 */
+    .flex-col {
+        flex-direction: column !important;
+    }
 }
 </style>
