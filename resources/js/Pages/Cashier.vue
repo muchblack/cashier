@@ -63,45 +63,70 @@
                         </p>
                     </div>
 
+                    <!-- 商品網格區域修改 -->
                     <div v-else class="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 xs:gap-2">
                         <div
                             v-for="item in productItems"
                             :key="item.id"
                             :class="[
-                                getColorForItem(item.id, isDarkMode),
-                                'rounded-lg overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 relative xs:text-sm'
-                            ]"
+            getColorForItem(item.id, isDarkMode),
+            'rounded-lg overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 relative xs:text-sm'
+        ]"
                             @click="addToCart(item.id)"
                         >
+                            <!-- 背景圖片層 -->
+                            <div
+                                v-if="item.item_img_url"
+                                class="absolute inset-0 z-0 w-full h-full"
+                                :style="{
+                backgroundImage: `url(${item.item_img_url})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+            }"
+                            ></div>
+
+                            <!-- 半透明覆蓋層 -->
+                            <div
+                                v-if="item.item_img_url"
+                                class="absolute inset-0 z-0"
+                                :style="{
+                backgroundColor: 'rgba(0, 0, 0, 0.35)',
+                backdropFilter: 'blur(0.5px)'
+            }"
+                            ></div>
+
                             <div class="relative">
                                 <div
                                     :class="[
-                                        getCartQuantity(item.id) > 0 ? 'bg-blue-600' : isDarkMode ? 'bg-gray-700' : 'bg-gray-500',
-                                        'absolute top-2 left-2 w-10 h-10 rounded-full flex items-center justify-center text-white'
-                                    ]"
+                    getCartQuantity(item.id) > 0 ? 'bg-blue-600' : isDarkMode ? 'bg-gray-700' : 'bg-gray-500',
+                    'absolute top-2 left-2 w-10 h-10 rounded-full flex items-center justify-center text-white z-10'
+                ]"
                                 >
                                     {{ getCartQuantity(item.id) > 0 ? getCartQuantity(item.id) : 0 }}
                                 </div>
                                 <div class="bg-green-600 text-white p-2 m-2 rounded inline-block float-right">
                                     現場:{{ item.item_stock - getCartQuantity(item.id) }}
                                 </div>
-                                <div class="bg-yellow-600 text-white p-2 m-2 rounded inline-block float-right">
+                                <div class="bg-amber-600 text-white p-2 m-2 rounded inline-block float-right">
                                     已預訂:{{ item.preOrder }}
                                 </div>
                             </div>
-                            <div :class="[getColorForItem(item.id, isDarkMode), 'p-4 mt-12 text-white']">
+
+                            <div :class="[!item.item_img_url ? getColorForItem(item.id, isDarkMode) : '', 'p-4 mt-12 text-white relative z-10']">
+                                <div class="text-xl font-bold mb-1">{{ item.title }}</div>
                                 <h3 class="text-xl font-bold mb-2">{{ item.item_name }}</h3>
-                                <h4 class="text-m font-bold mb-2">{{ item.item_name_jp }}</h4>
-                                <h4 class="text-m font-bold mb-2">{{ item.item_name_en }}</h4>
+                                <h4 v-if="item.item_name_jp" class="text-m font-bold mb-2">{{ item.item_name_jp }}</h4>
+                                <h4 v-if="item.item_name_en" class="text-m font-bold mb-2">{{ item.item_name_en }}</h4>
                                 <div class="flex items-center justify-between">
                                     <span class="text-xl">${{ item.item_price }}</span>
-                                    <span v-if="item.is_r18" class="bg-red-600 text-white px-2 py-1 rounded-full text-sm">18+</span>
+                                    <span v-if="item.is_r18" class="bg-red-600 text-white px-2 py-1 rounded-lg text-sm">18+</span>
                                 </div>
                             </div>
+
                             <!-- 商品添加視覺反饋 -->
                             <div
                                 v-if="recentlyAdded === item.id"
-                                class="absolute inset-0 bg-white bg-opacity-30 flex items-center justify-center"
+                                class="absolute inset-0 bg-white bg-opacity-30 flex items-center justify-center z-20"
                             >
                                 <div class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
                                     已加入購物車

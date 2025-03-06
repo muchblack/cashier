@@ -1,3 +1,4 @@
+<!-- 修改整體容器結構和卡片佈局 -->
 <template>
     <div class="min-h-screen bg-gray-900 text-white p-4">
         <div class="max-w-7xl mx-auto">
@@ -5,12 +6,38 @@
                 <h1 class="text-xl">當前場次：{{ currentVenue }}</h1>
             </div>
 
+            <!-- 使用 grid 佈局，設定為兩欄 -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div
                     v-for="item in productItems"
                     :key="item.id"
-                    :class="[getColorForItem(item.id), 'rounded-lg p-4 relative min-h-44']"
+                    :class="[!item.item_img_url ? getColorForItem(item.id) : '', 'rounded-lg overflow-hidden relative']"
+                    style="height: 280px;"
                 >
+                    <!-- 固定卡片高度 -->
+                <!-- 背景圖片層 -->
+                <div
+                    v-if="item.item_img_url"
+                    class="absolute inset-0 z-0 w-full h-full"
+                    :style="{
+                            backgroundImage: `url(${item.item_img_url})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
+                        }"
+                ></div>
+
+                <!-- 半透明覆蓋層 -->
+                <div
+                    v-if="item.item_img_url"
+                    class="absolute inset-0 z-0"
+                    :style="{
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            backdropFilter: 'blur(1px)'
+                        }"
+                ></div>
+
+                <!-- 內容層 -->
+                <div class="relative z-10 p-4 flex flex-col h-full">
                     <div class="flex justify-between items-start mb-1">
                         <div class="text-xl font-bold">{{ item.title }}</div>
                         <div
@@ -27,7 +54,7 @@
 
                     <div class="text-xl font-semibold mb-4">${{ item.item_price }}</div>
 
-                    <div class="flex gap-2 absolute bottom-4 right-4">
+                    <div class="mt-auto flex gap-2 self-end">
                         <div class="bg-amber-600 rounded-lg px-3 py-1 text-sm whitespace-nowrap">
                             已預訂:{{ item.preOrder }}
                         </div>
@@ -38,6 +65,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </template>
 
