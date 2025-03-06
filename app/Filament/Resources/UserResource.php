@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class UserResource extends Resource
@@ -22,6 +23,16 @@ class UserResource extends Resource
     protected static ?string $modelLabel = "使用者";
 
     protected static ?string $navigationIcon = 'heroicon-c-user-group';
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->user_role === 'admin';
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->user()->user_role === 'admin';
+    }
 
     public static function getEloquentQuery(): Builder
     {
@@ -89,11 +100,7 @@ class UserResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions([]);
     }
 
     public static function getRelations(): array
