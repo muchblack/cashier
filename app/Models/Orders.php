@@ -15,6 +15,8 @@ class Orders extends Model
         'order_type',
         'status',
         'preorder_name',
+        'plurk_account',
+        'preorder_price',
         'payment_id',
         'order_amount',
         'item_lists',

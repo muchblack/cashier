@@ -77,16 +77,35 @@ class OrdersResource extends Resource
                             }
                             return false;
                         }),
+                    Forms\Components\TextInput::make('plurk_account')
+                        ->label('預訂者噗浪帳號')
+                        ->visible(function(Get $get){
+                            if($get('order_type') === 'preorder')
+                            {
+                                return true;
+                            }
+                            return false;
+                        }),
                     Forms\Components\Select::make('status')
                         ->label('訂單付款狀態')
                         ->options([
                             'payed' => '已付款',
-                            'nonpayed' => '未付款'
+                            'nonpayed' => '未付款',
+                            'preorder' => '已付定金'
                         ])
                         ->required(),
                     Forms\Components\TextInput::make('order_amount')
                         ->label('訂單金額')
                         ->numeric(),
+                    Forms\Components\TextInput::make('preorder_price')
+                        ->label('已預付定金')
+                        ->visible(function(Get $get){
+                            if($get('order_type') === 'preorder')
+                            {
+                                return true;
+                            }
+                            return false;
+                        }),
                     Forms\Components\CheckboxList::make('item_lists')
                         ->label('訂單商品')
                         ->options($items)
@@ -201,11 +220,13 @@ class OrdersResource extends Resource
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'payed' => 'success',
-                        'nonpayed' => 'danger'
+                        'nonpayed' => 'danger',
+                        'preorder' => 'info'
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'payed' => '已付款',
                         'nonpayed' => '未付款',
+                        'preorder' => '已付定金'
                     }),
                 Tables\Columns\TextColumn::make('order_amount')
                     ->label('訂單總金額')

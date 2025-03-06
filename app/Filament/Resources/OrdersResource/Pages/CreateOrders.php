@@ -21,6 +21,14 @@ class CreateOrders extends CreateRecord
             $order_amount += $ownItem->item_price * $item['quantity'];
         }
         $data['order_amount'] = $order_amount;
+        if($data['order_type'] === 'preorder')
+        {
+            $data['trade_no'] = 'TRP-'.time().'-'.mt_rand(00000,99999);
+        }
+        else
+        {
+            $data['trdae_no'] = 'TR-'.time().'-'.mt_rand(00000,99999);
+        }
         return $data;
     }
 
