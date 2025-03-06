@@ -34,6 +34,7 @@ class ItemsController extends Controller
 
 // 撈出所有商品並使用 with 方法預先載入可能需要的關聯
         $items = Items::where('owner_id', $userId)
+            ->with('itemType')
             ->whereIn('event_id', $eventId)
             ->get()
             ->map(function ($item) use ($itemQuantities) {
@@ -44,6 +45,9 @@ class ItemsController extends Controller
                     // 記錄已預訂數量以便前端顯示
                     $item->preOrder = $itemQuantities[$itemId];
                 }
+
+                $item->item_type_name = ($item->item_type_id == 0 ) ? "無分類" : $item->itemType->item_type_name;
+
                 return $item;
             });
 

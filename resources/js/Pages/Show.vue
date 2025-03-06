@@ -6,71 +6,105 @@
                 <h1 class="text-xl">當前場次：{{ currentVenue }}</h1>
             </div>
 
-            <!-- 使用 grid 佈局，設定為兩欄 -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div
-                    v-for="item in productItems"
-                    :key="item.id"
-                    :class="[!item.item_img_url ? getColorForItem(item.id) : '', 'rounded-lg overflow-hidden relative']"
-                    style="height: 280px;"
-                >
-                    <!-- 固定卡片高度 -->
-                <!-- 背景圖片層 -->
-                <div
-                    v-if="item.item_img_url"
-                    class="absolute inset-0 z-0 w-full h-full"
-                    :style="{
-                            backgroundImage: `url(${item.item_img_url})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center'
-                        }"
-                ></div>
+            <!-- 商品資料載入中的提示 -->
+            <div v-if="isLoading" class="bg-gray-800 p-8 rounded-lg flex flex-col items-center justify-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mb-4"></div>
+                <p class="text-gray-300">正在載入商品資料...</p>
+            </div>
 
-                <!-- 半透明覆蓋層 -->
-                <div
-                    v-if="item.item_img_url"
-                    class="absolute inset-0 z-0"
-                    :style="{
-                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                            backdropFilter: 'blur(1px)'
-                        }"
-                ></div>
+            <!-- 無商品資料的提示 -->
+            <div v-else-if="productItems.length === 0" class="bg-gray-800 p-8 rounded-lg flex flex-col items-center justify-center">
+                <div class="text-4xl mb-4">📦</div>
+                <p class="text-gray-300 text-center">
+                    此場次沒有可用的商品<br>
+                    請選擇其他場次或聯絡管理員新增商品
+                </p>
+            </div>
 
-                <!-- 內容層 -->
-                <div class="relative z-10 p-4 flex flex-col h-full">
-                    <div class="flex justify-between items-start mb-1">
-                        <div class="text-xl font-bold">{{ item.title }}</div>
+            <!-- 依類別顯示商品 -->
+            <div v-else class="space-y-8">
+                <!-- 針對每個商品類別創建一個區塊 -->
+                <div v-for="category in productCategories" :key="category.id" class="mb-8">
+                    <!-- 類別標題 -->
+                    <div class="bg-gray-800 p-3 rounded-lg mb-4 border-l-4 border-blue-500">
+                        <h2 class="text-xl font-bold">{{ category.name }}</h2>
+                    </div>
+
+                    <!-- 該類別的商品網格 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div
-                            v-if="item.is_r18"
-                            class="bg-red-600 text-white rounded-lg px-3 py-1 text-sm whitespace-nowrap"
+                            v-for="item in category.items"
+                            :key="item.id"
+                            :class="[!item.item_img_url ? getColorForItem(item.id) : '', 'rounded-lg overflow-hidden relative']"
+                            style="height: 280px;"
                         >
-                            18+
+                            <!-- 背景圖片層 -->
+                            <div
+                                v-if="item.item_img_url"
+                                class="absolute inset-0 z-0 w-full h-full"
+                                :style="{
+                                    backgroundImage: `url(${item.item_img_url})`,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center'
+                                }"
+                            ></div>
+
+                            <!-- 半透明覆蓋層 -->
+                            <div
+                                v-if="item.item_img_url"
+                                class="absolute inset-0 z-0"
+                                :style="{
+                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                    backdropFilter: 'blur(1px)'
+                                }"
+                            ></div>
+
+                            <!-- 內容層 -->
+                            <div class="relative z-10 p-4 flex flex-col h-full">
+                                <div class="flex justify-between items-start mb-1">
+                                    <div class="text-xl font-bold">{{ item.title }}</div>
+                                    <div
+                                        v-if="item.is_r18"
+                                        class="bg-red-600 text-white rounded-lg px-3 py-1 text-sm whitespace-nowrap"
+                                    >
+                                        18+
+                                    </div>
+                                </div>
+
+                                <div v-if="item.item_name" class="text-xl mb-1">{{ item.item_name }}</div>
+                                <div v-if="item.item_name_en" class="text-sm mb-2">{{ item.item_name_en }}</div>
+                                <div v-if="item.item_name_jp" class="text-sm mb-2">{{ item.item_name_jp }}</div>
+
+                                <div class="text-xl font-semibold mb-4">${{ item.item_price }}</div>
+
+                                <div class="mt-auto flex gap-2 self-end">
+                                    <div class="bg-amber-600 rounded-lg px-3 py-1 text-sm whitespace-nowrap">
+                                        已預訂:{{ item.preOrder }}
+                                    </div>
+                                    <div class="bg-green-600 rounded-lg px-3 py-1 text-sm whitespace-nowrap">
+                                        現場:{{ item.item_stock }}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <div v-if="item.item_name" class="text-xl mb-1">{{ item.item_name }}</div>
-                    <div v-if="item.item_name_en" class="text-sm mb-2">{{ item.item_name_en }}</div>
-                    <div v-if="item.item_name_jp" class="text-sm mb-2">{{ item.item_name_jp }}</div>
-
-                    <div class="text-xl font-semibold mb-4">${{ item.item_price }}</div>
-
-                    <div class="mt-auto flex gap-2 self-end">
-                        <div class="bg-amber-600 rounded-lg px-3 py-1 text-sm whitespace-nowrap">
-                            已預訂:{{ item.preOrder }}
-                        </div>
-                        <div class="bg-green-600 rounded-lg px-3 py-1 text-sm whitespace-nowrap">
-                            現場:{{ item.item_stock }}
-                        </div>
-                    </div>
+                <!-- 無商品類別時顯示提示 -->
+                <div v-if="productCategories.length === 0" class="bg-gray-800 p-8 rounded-lg flex flex-col items-center justify-center">
+                    <div class="text-4xl mb-4">📋</div>
+                    <p class="text-gray-300 text-center">
+                        沒有找到商品類別<br>
+                        請確認商品數據是否包含類型資訊
+                    </p>
                 </div>
             </div>
         </div>
     </div>
-    </div>
 </template>
 
 <script setup>
-import {defineProps, onMounted, ref} from 'vue';
+import {computed, defineProps, onMounted, ref} from 'vue';
 
 const props = defineProps({
     currentVenue: String,
@@ -81,6 +115,27 @@ const props = defineProps({
 
 const isLoading = ref(false);
 const productItems = ref([]);
+
+const productCategories = computed(() => {
+    // 從商品列表中獲取所有不重複的類型 ID
+    const categoryIds = [...new Set(productItems.value.map(item => item.item_type_id))];
+
+    // 依照類型 ID 為每個類別創建對象
+    return categoryIds.map(typeId => {
+        // 找出該類別的第一個商品來取得類別名稱
+        const categoryItem = productItems.value.find(item => item.item_type_id === typeId);
+        const categoryName = categoryItem?.item_type_name || `類別 ${typeId}`;
+
+        // 過濾出屬於這個類別的所有商品
+        const items = productItems.value.filter(item => item.item_type_id === typeId);
+
+        return {
+            id: typeId,
+            name: categoryName,
+            items: items
+        };
+    }).sort((a, b) => a.id - b.id); // 依照 ID 排序
+});
 
 const fetchProductsBySession = async (sessionId) => {
     try {
