@@ -33,18 +33,18 @@
             </div>
         </div>
 
-        <!-- 主要內容區域 - 根據螢幕尺寸自適應寬度 -->
+        <!-- 主要內容區域 - 不再預留購物車空間 -->
         <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'flex-1 w-full flex justify-center overflow-hidden']">
-            <div class="w-full max-w-[70%] lg:max-w-[70%] md:max-w-[85%] sm:max-w-[95%] xs:max-w-[100%] flex h-full lg:flex-row md:flex-row sm:flex-col xs:flex-col">
-                <!-- 左側產品網格 -->
-                <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'lg:w-2/3 md:w-1/2 sm:w-full p-4 overflow-y-auto']">
+            <div class="w-full max-w-[95%] xl:max-w-[90%] 2xl:max-w-[85%] flex h-full">
+                <!-- 左側產品網格 (現在佔據全部寬度) -->
+                <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'w-full p-4 overflow-y-auto']">
                     <!-- 左側添加場次信息顯示 -->
                     <div :class="[isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-blue-100 text-blue-800', 'mb-4 p-3 rounded-lg']">
                         <div class="flex justify-between items-center">
                             <span class="font-medium">當前場次：{{ currentSessionName }}</span>
                             <span class="text-sm" :class="isDarkMode ? 'text-gray-400' : 'text-blue-600'">
-                                {{ currentSessionTime }}
-                            </span>
+                        {{ currentSessionTime }}
+                    </span>
                         </div>
                     </div>
 
@@ -71,8 +71,7 @@
                         </p>
                     </div>
 
-
-                    <!-- 商品網格區域修改 -->
+                    <!-- 商品網格區域 -->
                     <div v-else class="space-y-6">
                         <!-- 針對每個商品類別創建一個區塊 -->
                         <div v-for="category in productCategories" :key="category.id" class="mb-4">
@@ -81,26 +80,27 @@
                                 <h3 class="text-lg font-bold">{{ category.name }}</h3>
                             </div>
 
-                            <!-- 該類別的商品網格 -->
-                            <div class="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 xs:gap-2">
+                            <!-- 該類別的商品網格 - 優化網格列數 -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 xs:gap-2">
                                 <div
                                     v-for="item in category.items"
                                     :key="item.id"
                                     :class="[
-                    getColorForItem(item.id, isDarkMode),
-                    'rounded-lg overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 relative xs:text-sm'
-                ]"
+                                getColorForItem(item.id, isDarkMode),
+                                'rounded-lg overflow-hidden cursor-pointer transform transition-transform duration-200 hover:scale-105 relative xs:text-sm shadow-md'
+                            ]"
                                     @click="addToCart(item.id)"
                                 >
+                                    <!-- 商品內容不變 -->
                                     <!-- 背景圖片層 -->
                                     <div
                                         v-if="item.item_img_url"
                                         class="absolute inset-0 z-0 w-full h-full"
                                         :style="{
-                        backgroundImage: `url(${item.item_img_url})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center'
-                    }"
+                                    backgroundImage: `url(${item.item_img_url})`,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center'
+                                }"
                                     ></div>
 
                                     <!-- 半透明覆蓋層 -->
@@ -108,17 +108,17 @@
                                         v-if="item.item_img_url"
                                         class="absolute inset-0 z-0"
                                         :style="{
-                        backgroundColor: 'rgba(0, 0, 0, 0.35)',
-                        backdropFilter: 'blur(0.5px)'
-                    }"
+                                    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+                                    backdropFilter: 'blur(0.5px)'
+                                }"
                                     ></div>
 
                                     <div class="relative">
                                         <div
                                             :class="[
-                            getCartQuantity(item.id) > 0 ? 'bg-blue-600' : isDarkMode ? 'bg-gray-700' : 'bg-gray-500',
-                            'absolute top-2 left-2 w-10 h-10 rounded-full flex items-center justify-center text-white z-10'
-                        ]"
+                                        getCartQuantity(item.id) > 0 ? 'bg-blue-600' : isDarkMode ? 'bg-gray-700' : 'bg-gray-500',
+                                        'absolute top-2 left-2 w-10 h-10 rounded-full flex items-center justify-center text-white z-10'
+                                    ]"
                                         >
                                             {{ getCartQuantity(item.id) > 0 ? getCartQuantity(item.id) : 0 }}
                                         </div>
@@ -155,109 +155,148 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- 右側購物車和結帳 -->
-                <div :class="[ isDarkMode ? 'bg-gray-700' : 'bg-gray-100', 'w-full xs:w-full sm:w-full md:w-1/2 lg:w-1/3 p-4 xs:p-2 overflow-y-auto border-t xs:border-t sm:border-t lg:border-l lg:border-t-0',isDarkMode ? 'border-gray-600' : 'border-gray-300']">
-                    <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'rounded-lg p-4 shadow sticky top-4']">
-                        <h2 :class="[isDarkMode ? 'text-gray-200' : 'text-gray-800', 'text-xl font-bold mb-4 pb-2 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-                            購物車
-                        </h2>
+        <!-- 右側漂浮購物車 (替換原有的購物車區塊) -->
+        <div :class="[
+                isDarkMode ? 'bg-gray-700' : 'bg-gray-100',
+                'w-full xs:w-full sm:w-full md:w-96 lg:w-96 overflow-y-auto fixed right-0 top-20 bottom-0 z-20 transition-transform duration-300 transform shadow-xl',
+                isCartVisible ? 'translate-x-0' : 'translate-x-full'
+            ]" style="max-height: calc(100vh - 80px);">
+            <!-- 購物車內容 -->
+            <div class="h-full flex flex-col">
+                <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'p-4 flex-1 overflow-y-auto']">
+                    <div class="sticky top-0 pb-4 z-10" :class="isDarkMode ? 'bg-gray-800' : 'bg-white'">
+                        <div class="flex justify-between items-center mb-4 pb-2 border-b" :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'">
+                            <h2 :class="[isDarkMode ? 'text-gray-200' : 'text-gray-800', 'text-xl font-bold']">
+                                購物車
+                            </h2>
+                            <!-- 關閉購物車按鈕 -->
+                            <button
+                                @click="toggleCart"
+                                class="rounded-full p-2"
+                                :class="isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-200'"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
 
-                        <div
-                            v-for="item in cartItems"
-                            :key="item.id"
-                            class="flex flex-col py-3 border-b"
-                            :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'"
+                    <div
+                        v-for="item in cartItems"
+                        :key="item.id"
+                        class="flex flex-col py-3 border-b"
+                        :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'"
+                    >
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <span :class="[isDarkMode ? 'text-gray-200' : 'text-gray-800', 'text-lg font-medium']">{{ item.item_name }}</span>
+                                <span
+                                    v-if="item.is_r18"
+                                    class="bg-red-600 text-white px-2 py-1 rounded-full text-sm ml-2"
+                                >18+</span>
+                            </div>
+                            <span :class="[isDarkMode ? 'text-gray-300' : 'text-gray-700', 'font-medium']">${{ item.item_price }}</span>
+                        </div>
+                        <div class="flex items-center justify-end">
+                            <button
+                                @click.stop="decreaseQuantity(item.id)"
+                                :class="[isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-700', 'w-8 h-8 rounded-md flex items-center justify-center text-lg']"
+                            >
+                                −
+                            </button>
+                            <div :class="[isDarkMode ? 'border-gray-600 text-gray-200' : 'border-gray-300', 'w-16 h-8 mx-2 border rounded-md flex items-center justify-center']">
+                                {{ item.quantity }}
+                            </div>
+                            <button
+                                @click.stop="increaseQuantity(item.id)"
+                                :class="[isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-700', 'w-8 h-8 rounded-md flex items-center justify-center text-lg']"
+                            >
+                                +
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 購物車為空的提示 -->
+                    <div v-if="cartItems.length === 0" :class="[isDarkMode ? 'text-gray-400' : 'text-gray-500', 'py-8 text-center']">
+                        購物車是空的<br>點擊商品加入購物車
+                    </div>
+
+                    <div v-else>
+                        <!-- 年齡驗證 -->
+                        <div v-if="hasAdultItems" class="bg-red-600 text-white p-3 my-4 rounded-lg flex items-center text-sm">
+                            <span class="text-xl mr-2">⚠️</span>
+                            <span>請確認購買者年滿18歲（民國 {{ r18Date }} 以前出生）</span>
+                        </div>
+
+                        <div class="flex justify-between items-center mt-6 text-xl font-bold" :class="{ 'text-gray-200': isDarkMode }">
+                            <span>總計</span>
+                            <span>${{ total }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 操作按鈕區 (固定在底部) -->
+                <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-white', 'p-4 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <button
+                            @click="clearCart"
+                            :class="[
+                        'py-3 px-4 rounded-lg border-2 text-lg font-medium transition-colors duration-200',
+                        cartItems.length === 0 ? 'opacity-50 cursor-not-allowed' : '',
+                        isDarkMode ? 'border-pink-700 text-pink-400 hover:bg-pink-900 hover:bg-opacity-30' : 'border-pink-500 text-pink-500 hover:bg-pink-50'
+                    ]"
+                            :disabled="cartItems.length === 0"
                         >
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="flex items-center">
-                                    <span :class="[isDarkMode ? 'text-gray-200' : 'text-gray-800', 'text-lg font-medium']">{{ item.item_name }}</span>
-                                    <span
-                                        v-if="item.is_r18"
-                                        class="bg-red-600 text-white px-2 py-1 rounded-full text-sm ml-2"
-                                    >18+</span>
-                                </div>
-                                <span :class="[isDarkMode ? 'text-gray-300' : 'text-gray-700', 'font-medium']">${{ item.item_price }}</span>
-                            </div>
-                            <div class="flex items-center justify-end">
-                                <button
-                                    @click.stop="decreaseQuantity(item.id)"
-                                    :class="[isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-700', 'w-8 h-8 rounded-md flex items-center justify-center text-lg']"
-                                >
-                                    −
-                                </button>
-                                <div :class="[isDarkMode ? 'border-gray-600 text-gray-200' : 'border-gray-300', 'w-16 h-8 mx-2 border rounded-md flex items-center justify-center']">
-                                    {{ item.quantity }}
-                                </div>
-                                <button
-                                    @click.stop="increaseQuantity(item.id)"
-                                    :class="[isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-700', 'w-8 h-8 rounded-md flex items-center justify-center text-lg']"
-                                >
-                                    +
-                                </button>
-                            </div>
-                        </div>
+                            清空
+                        </button>
+                        <button
+                            @click="showCheckoutModal"
+                            :class="[
+                        'py-3 px-4 rounded-lg text-white text-lg font-medium transition-colors duration-200',
+                        cartItems.length === 0 ? 'opacity-50 cursor-not-allowed' : '',
+                        isDarkMode ? 'bg-blue-700 hover:bg-blue-600' : 'bg-blue-500 hover:bg-blue-400'
+                    ]"
+                            :disabled="cartItems.length === 0"
+                        >
+                            結帳
+                        </button>
+                    </div>
 
-                        <!-- 購物車為空的提示 -->
-                        <div v-if="cartItems.length === 0" :class="[isDarkMode ? 'text-gray-400' : 'text-gray-500', 'py-8 text-center']">
-                            購物車是空的<br>點擊商品加入購物車
-                        </div>
-
-                        <div v-else>
-                            <!-- 年齡驗證 -->
-                            <div v-if="hasAdultItems" class="bg-red-600 text-white p-3 my-4 rounded-lg flex items-center text-sm">
-                                <span class="text-xl mr-2">⚠️</span>
-                                <span>請確認購買者年滿18歲（民國 {{ r18Date }} 以前出生）</span>
-                            </div>
-
-                            <div class="flex justify-between items-center mt-6 text-xl font-bold" :class="{ 'text-gray-200': isDarkMode }">
-                                <span>總計</span>
-                                <span>${{ total }}</span>
-                            </div>
-                        </div>
-
-                        <!-- 操作按鈕 -->
-                        <div class="grid grid-cols-2 gap-4 mt-6">
-                            <button
-                                @click="clearCart"
-                                :class="[
-                                    'py-3 px-4 rounded-lg border-2 text-lg font-medium transition-colors duration-200',
-                                    cartItems.length === 0 ? 'opacity-50 cursor-not-allowed' : '',
-                                    isDarkMode ? 'border-pink-700 text-pink-400 hover:bg-pink-900 hover:bg-opacity-30' : 'border-pink-500 text-pink-500 hover:bg-pink-50'
-                                ]"
-                                :disabled="cartItems.length === 0"
-                            >
-                                清空
-                            </button>
-                            <button
-                                @click="showCheckoutModal"
-                                :class="[
-                                    'py-3 px-4 rounded-lg text-white text-lg font-medium transition-colors duration-200',
-                                    cartItems.length === 0 ? 'opacity-50 cursor-not-allowed' : '',
-                                    isDarkMode ? 'bg-blue-700 hover:bg-blue-600' : 'bg-blue-500 hover:bg-blue-400'
-                                ]"
-                                :disabled="cartItems.length === 0"
-                            >
-                                結帳
-                            </button>
-                        </div>
-
-                        <!-- 預留單按鈕 (新增) -->
-                        <div class="mt-4" v-if="cartItems.length > 0">
-                            <button
-                                @click="createPreOrder"
-                                :class="[
-                                    'w-full py-3 px-4 rounded-lg text-lg font-medium transition-colors duration-200',
-                                    isDarkMode ? 'bg-green-700 hover:bg-green-600 text-white' : 'bg-green-500 hover:bg-green-400 text-white'
-                                ]"
-                            >
-                                建立預留單
-                            </button>
-                        </div>
+                    <!-- 預留單按鈕 -->
+                    <div v-if="cartItems.length > 0">
+                        <button
+                            @click="createPreOrder"
+                            :class="[
+                        'w-full py-3 px-4 rounded-lg text-lg font-medium transition-colors duration-200',
+                        isDarkMode ? 'bg-green-700 hover:bg-green-600 text-white' : 'bg-green-500 hover:bg-green-400 text-white'
+                    ]"
+                        >
+                            建立預留單
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- 固定在右下角的購物車按鈕 -->
+        <button
+            @click="toggleCart"
+            class="fixed z-30 bottom-6 right-6 rounded-full w-16 h-16 flex items-center justify-center shadow-lg"
+            :class="isDarkMode ? 'bg-blue-700 hover:bg-blue-600' : 'bg-blue-500 hover:bg-blue-400'"
+        >
+            <div class="relative">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <div v-if="cartTotalQuantity > 0" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                    {{ cartTotalQuantity }}
+                </div>
+            </div>
+        </button>
 
         <!-- 引入付款元件 -->
         <CheckoutModal
@@ -278,7 +317,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import {ref, computed, onMounted, watch, onUnmounted} from 'vue';
 import { usePage, router } from '@inertiajs/vue3';
 import Navbar from './Components/Navbar.vue';
 import CheckoutModal from './Components/CheckoutModel.vue';
@@ -310,6 +349,9 @@ const isDarkMode = ref(false);
 const isCheckoutModalVisible = ref(false);
 // 選中的場次
 const selectedSession = ref(1);
+
+// 新增行動裝置購物車顯示狀態
+const isCartVisible = ref(false);
 
 // 計算當前場次名稱
 const currentSessionName = computed(() => {
@@ -475,7 +517,39 @@ onMounted(async () => {
         // 初始化空購物車
         initializeCart();
     }
+
+    isCartVisible.value = false;
+
+    // 監聽視窗大小變化，大螢幕時自動關閉背景滾動限制
+    const handleResize = () => {
+        if (window.innerWidth >= 768) {
+            document.body.style.overflow = '';
+        } else if (isCartVisible.value) {
+            document.body.style.overflow = 'hidden';
+        }
+    };
+
+    // 監聽視窗大小變化
+    window.addEventListener('resize', handleResize);
+
+    // 組件卸載時移除事件監聽
+    onUnmounted(() => {
+        window.removeEventListener('resize', handleResize);
+        document.body.style.overflow = '';
+    });
 });
+
+// 修改關閉結帳彈出視窗方法，同時關閉購物車
+const closeCheckoutModal = () => {
+    isCheckoutModalVisible.value = false;
+    isCartVisible.value = false;
+};
+
+// 修改顯示結帳彈出視窗方法，確保購物車也會關閉
+const showCheckoutModal = () => {
+    isCheckoutModalVisible.value = true;
+    isCartVisible.value = false;
+};
 
 // 獲取商品在購物車中的數量
 const getCartQuantity = (id) => {
@@ -506,14 +580,19 @@ const hasAdultItems = computed(() => {
     return cartItems.value.some(item => item.is_r18);
 });
 
-// 顯示結帳彈出視窗
-const showCheckoutModal = () => {
-    isCheckoutModalVisible.value = true;
-};
+const cartTotalQuantity = computed(() => {
+    return cartItems.value.reduce((sum, item) => sum + item.quantity, 0);
+});
 
-// 關閉結帳彈出視窗
-const closeCheckoutModal = () => {
-    isCheckoutModalVisible.value = false;
+const toggleCart = () => {
+    isCartVisible.value = !isCartVisible.value;
+
+    // 如果購物車顯示，禁止背景滾動以提升移動裝置體驗
+    if (isCartVisible.value && window.innerWidth < 768) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
 };
 
 // 生成唯一交易 ID
@@ -771,5 +850,163 @@ body,
     .flex-col {
         flex-direction: column !important;
     }
+}
+/* 購物車按鈕樣式增強 */
+.fixed.z-30.bottom-6.right-6 {
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+    transition: transform 0.2s, filter 0.2s;
+    animation: float 3s ease-in-out infinite;
+}
+
+.fixed.z-30.bottom-6.right-6:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.2));
+    animation-play-state: paused;
+}
+
+.fixed.z-30.bottom-6.right-6:active {
+    transform: scale(0.95);
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+/* 滑入滑出動畫優化 */
+.transition-transform.duration-300 {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 項目增刪動畫 */
+.flex-col.py-3 {
+    transition: all 0.3s ease;
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 購物車按鈕徽章動畫 */
+.absolute.-top-2.-right-2 {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* 改進滾動條樣式 */
+.overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.dark-mode .overflow-y-auto::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+/* 購物車覆蓋層 */
+.fixed.right-0.top-20.bottom-0.z-20 {
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.25);
+}
+
+/* 購物車容器內部元素反應式調整 */
+@media (max-width: 640px) {
+    .fixed.right-0.top-20.bottom-0.z-20 {
+        width: 100%;
+    }
+}
+
+/* 改善按鈕觸感 */
+button {
+    position: relative;
+    overflow: hidden;
+}
+
+button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%, -50%);
+    transform-origin: 50% 50%;
+}
+
+button:active::after {
+    opacity: 0.3;
+    transform: scale(50, 50) translate(-50%, -50%);
+    transition: transform 0.5s, opacity 1s;
+}
+
+/* 購物車內容容器在行動裝置上的邊距調整 */
+@media (max-width: 640px) {
+    .p-4 {
+        padding: 0.75rem;
+    }
+
+    .h-8 {
+        height: 2rem;
+    }
+
+    .w-8 {
+        width: 2rem;
+    }
+}
+
+/* 購物車彈出時的背景覆蓋層 */
+.cart-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 15;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.cart-backdrop.active {
+    opacity: 1;
+    visibility: visible;
 }
 </style>
