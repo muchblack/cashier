@@ -424,6 +424,7 @@ const transformReservationData = (reservations) => {
 
 // 初始化
 onMounted(() => {
+    document.title = page.props.title;
     // 載入深夜模式偏好
     const darkModePref = localStorage.getItem('darkMode');
     if (darkModePref !== null) {

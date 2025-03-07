@@ -111,6 +111,7 @@ const props = defineProps({
     eventId: String,
     userId: String,
     events: Array,
+    title: String,
 });
 
 const isLoading = ref(false);
@@ -166,6 +167,7 @@ const fetchProductsBySession = async (sessionId) => {
 };
 
 onMounted(async () => {
+    document.title = props.title
     // 根據選中的場次載入商品資料
     await fetchProductsBySession(props.eventId);
 });

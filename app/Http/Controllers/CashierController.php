@@ -29,6 +29,7 @@ class CashierController
         $event = Events::where('owner_id', auth()->id())->get()->toArray();
 
         return Inertia::render('Cashier', [
+                'title' => '收銀台',
                 'quickAmounts' => $quickAmounts,
                 'r18Date' => $r18Date,
                 'payment' => $payment,
@@ -42,6 +43,7 @@ class CashierController
         $user = User::where('name', $userName)->first();
         $event = Events::find($eventId);
         return Inertia::render('Show',[
+            'title' => '庫存頁面',
             'eventId' => $eventId,
             'userId' => $user->id,
             'currentVenue' => $event->event_name
@@ -54,6 +56,7 @@ class CashierController
         $event = Events::where('owner_id', auth()->id())->get()->toArray();
 
         return Inertia::render('PreOrder',[
+            'title' => '預留單',
             'events' => $event,
             'user' => auth()->id(),
         ]);

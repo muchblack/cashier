@@ -446,6 +446,7 @@ const createPreOrder = async () => {
 
 // 初始化購物車與深夜模式
 onMounted(async () => {
+    document.title = page.props.title
     // 載入深夜模式偏好
     const darkModePref = localStorage.getItem('darkMode');
     if (darkModePref !== null) {
