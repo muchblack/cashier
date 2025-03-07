@@ -28,11 +28,11 @@ class OrderController
         $items = $this->getItems($userId);
 
         //未完成預購單
-        $pending = Orders::select('id','preorder_name', 'order_amount', 'item_quantities')
+        $pending = Orders::select('id','preorder_name', 'plurk_account', 'preorder_price', 'order_amount', 'item_quantities')
                 ->where('owner_id', $userId)
                 ->where('event_id', $eventId)
                 ->where('order_type', 'preorder')
-                ->where('status','nonpayed')
+                ->whereIn('status',['nonpayed','preorder'])
                 ->get()->toArray();
         foreach ($pending as &$item)
         {
@@ -43,7 +43,7 @@ class OrderController
         }
 
         //已完成預購單
-        $complete = Orders::select('id','trade_no','preorder_name', 'order_amount', 'item_quantities', 'updated_at')
+        $complete = Orders::select('id','trade_no','preorder_name', 'plurk_account', 'order_amount', 'item_quantities', 'updated_at')
             ->where('owner_id', $userId)
             ->where('event_id', $eventId)
             ->where('order_type', 'preorder')
@@ -130,6 +130,8 @@ class OrderController
                     'order_amount' => $order->order_amount,
                     'item_quantities' => $itemList,
                     'preorder_name' => $order->preorder_name,
+                    'plurk_account' => $order->plurk_account,
+                    'preorder_price' => $order->preorder_price,
                 ]
             ]);
         }catch (\Exception $e) {

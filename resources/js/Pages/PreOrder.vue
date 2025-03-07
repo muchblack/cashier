@@ -1,5 +1,7 @@
+<!-- 修改主要容器的條件式類別 -->
 <template>
-    <div :class="['flex flex-col h-screen', isDarkMode ? 'dark-mode bg-gray-900' : 'bg-blue-500']">
+    <div :class="['min-h-screen', isDarkMode ? 'bg-gray-900 text-white' : 'bg-blue-100 text-gray-800']">
+        <!-- Navbar 維持不變 -->
         <!-- 使用共用頂部導覽列 -->
         <Navbar
             pageTitle="預留單"
@@ -33,167 +35,153 @@
         </div>
 
         <!-- 主要內容區域 -->
-        <div :class="[isDarkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-800', 'flex-1 p-6 overflow-auto']">
+        <div class="max-w-7xl mx-auto p-4">
+            <!-- 目前選擇的場次資訊顯示 -->
+            <div :class="[isDarkMode ? 'bg-gray-800 text-white' : 'bg-blue-500 text-white', 'rounded-lg p-4 mb-6']">
+                <h1 class="text-xl">當前場次：{{ currentSessionName }}</h1>
+                <div class="text-sm opacity-75">{{ currentSessionTime }}</div>
+            </div>
+
             <!-- 當資料載入中顯示的狀態 -->
-            <div v-if="isLoading" class="flex justify-center items-center py-16">
+            <div v-if="isLoading" :class="[isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-600', 'p-8 rounded-lg flex flex-col items-center justify-center']">
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2" :class="isDarkMode ? 'border-blue-400' : 'border-blue-600'"></div>
-                <span class="ml-3" :class="isDarkMode ? 'text-gray-300' : 'text-gray-600'">載入中...</span>
+                <p class="mt-4">載入中...</p>
             </div>
 
             <template v-else>
-                <!-- 目前選擇的場次資訊顯示 -->
-                <div :class="[isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-blue-100 text-blue-800', 'mb-4 p-3 rounded-lg']">
-                    <div class="flex justify-between items-center">
-                        <span class="font-medium">當前場次：{{ currentSessionName }}</span>
-                        <span class="text-sm" :class="isDarkMode ? 'text-gray-400' : 'text-blue-600'">
-                            {{ currentSessionTime }}
-                        </span>
-                    </div>
-                </div>
-
                 <!-- 待處理預留單區塊 -->
-                <div :class="[isDarkMode ? 'bg-gray-700' : 'bg-white', 'rounded-lg shadow-md mb-6 overflow-hidden']">
-                    <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-blue-500', 'py-3 px-4 text-white font-bold flex justify-between items-center']">
-                        <span>待處理預留單</span>
-                        <div class="flex items-center">
-                            <button
-                                v-if="getSelectedReservations.length > 0"
-                                @click="processBatchReservations"
-                                class="text-sm bg-green-600 hover:bg-green-500 py-1 px-3 rounded-lg ml-2 transition-colors duration-200"
-                            >
-                                處理已選項目
-                            </button>
-                        </div>
+                <div class="space-y-8 mb-8">
+                    <!-- 區塊標題 -->
+                    <div :class="[isDarkMode ? 'bg-gray-800 border-blue-500' : 'bg-blue-500 border-blue-300', 'p-3 rounded-lg mb-4 border-l-4 flex justify-between items-center']">
+                        <h2 class="text-xl font-bold" :class="isDarkMode ? 'text-white' : 'text-white'">待處理預留單</h2>
+                        <button
+                            v-if="getSelectedReservations.length > 0"
+                            @click="processBatchReservations"
+                            class="text-sm bg-green-600 hover:bg-green-500 py-1 px-3 rounded-lg transition-colors duration-200 text-white"
+                        >
+                            處理已選項目
+                        </button>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                            <tr :class="[isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700']">
-                                <th class="px-4 py-3 text-left">客戶</th>
-                                <th class="px-4 py-3 text-left">商品資訊</th>
-                                <th class="px-4 py-3 text-left">價格</th>
-                                <th class="px-4 py-3 text-left">操作</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr v-if="filteredPendingReservations.length === 0">
-                                <td
-                                    colspan="10"
-                                    class="px-4 py-8 text-center"
-                                    :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'"
-                                >
-                                    沒有待處理預留單
-                                </td>
-                            </tr>
-                            <tr
-                                v-for="reservation in filteredPendingReservations"
-                                :key="reservation.id"
-                                :class="[
-                                        isDarkMode ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-50',
-                                        'border-b transition-colors duration-150'
-                                    ]"
-                            >
-                                <td class="px-4 py-3">{{ reservation.preorder_name || '未指定' }}</td>
-                                <td class="px-4 py-3">
-                                    <div v-if="reservation.item_quantities && reservation.item_quantities.length > 0">
-                                        <div v-for="(item, index) in reservation.item_quantities" :key="index" class="mb-1 last:mb-0">
-                                            <span class="font-medium">{{ item.item_name }}</span> x <span class="font-bold">{{ item.quantity }}</span>
+
+                    <!-- 無待處理預留單時顯示 -->
+                    <div v-if="filteredPendingReservations.length === 0" :class="[isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-500', 'p-8 rounded-lg flex flex-col items-center justify-center']">
+                        <div class="text-4xl mb-4">📋</div>
+                        <p class="text-center">
+                            沒有待處理預留單<br>
+                            目前無需處理的訂單
+                        </p>
+                    </div>
+
+                    <!-- 待處理預留單列表 -->
+                    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div
+                            v-for="reservation in filteredPendingReservations"
+                            :key="reservation.id"
+                            :class="[isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800', 'rounded-lg overflow-hidden relative shadow-md']"
+                        >
+                            <!-- 內容層 -->
+                            <div class="p-4 flex flex-col">
+                                <div class="text-xl font-bold mb-2">{{ reservation.preorder_name || '未指定' }}</div>
+                                <div class="text-lg mb-2" v-if="reservation.plurk_account">plurk: {{ reservation.plurk_account || '未指定' }}</div>
+
+                                <div class="mb-4">
+                                    <div class="text-sm uppercase tracking-wide mb-1" :class="isDarkMode ? 'text-blue-300' : 'text-blue-600'">商品明細</div>
+                                    <div v-if="reservation.item_quantities && reservation.item_quantities.length > 0"
+                                         :class="[isDarkMode ? 'bg-gray-700 bg-opacity-50 border-blue-400' : 'bg-blue-50 border-blue-300', 'p-3 rounded-lg border-l-2']">
+                                        <div v-for="(item, index) in reservation.item_quantities" :key="index"
+                                             class="mb-2 last:mb-0 flex justify-between items-center">
+                                            <span class="font-medium">{{ item.item_name }}</span>
+                                            <span :class="[isDarkMode ? 'bg-blue-600' : 'bg-blue-500', 'px-2 py-1 rounded text-sm font-bold text-white']">x {{ item.quantity }}</span>
                                         </div>
                                     </div>
-                                    <div v-else>{{ reservation.name }}</div>
-                                </td>
-                                <td class="px-4 py-3">${{ reservation.order_amount }}</td>
-                                <td class="px-4 py-3">
-                                    <div class="flex space-x-2">
-                                        <button
-                                            @click="processReservation(reservation.id)"
-                                            :class="[
-                                                    isDarkMode ? 'bg-blue-700 hover:bg-blue-600' : 'bg-blue-500 hover:bg-blue-400',
-                                                    'text-white text-sm py-1 px-3 rounded transition-colors duration-200'
-                                                ]"
-                                        >
-                                            處理
-                                        </button>
-                                        <button
-                                            @click="processDeleteReservation(reservation.id)"
-                                            :class="[
-                                                    isDarkMode ? 'bg-red-700 hover:bg-blue-600' : 'bg-blue-500 hover:bg-blue-400',
-                                                    'text-white text-sm py-1 px-3 rounded transition-colors duration-200'
-                                                ]"
-                                        >
-                                            刪除
-                                        </button>
+                                    <div v-else :class="[isDarkMode ? 'bg-gray-700 bg-opacity-50 border-blue-400' : 'bg-blue-50 border-blue-300', 'p-3 rounded-lg border-l-2']">
+                                        {{ reservation.name }}
                                     </div>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                                </div>
+
+                                <div :class="[isDarkMode ? 'text-gray-200' : 'text-gray-700', 'text-lg font-semibold mb-1']">訂單總金額：${{ reservation.order_amount }}</div>
+                                <div :class="[isDarkMode ? 'text-gray-200' : 'text-gray-700', 'text-lg font-semibold mb-1']">已付定金：${{ reservation.preorder_price || 0 }}</div>
+                                <div :class="[isDarkMode ? 'text-gray-200' : 'text-gray-700', 'text-lg font-semibold mb-4']">還需付款：${{ reservation.order_amount - (reservation.preorder_price || 0) }}</div>
+
+                                <div class="mt-auto flex gap-2 justify-end">
+                                    <button
+                                        @click="processReservation(reservation.id)"
+                                        class="bg-green-600 hover:bg-green-500 text-white text-sm py-1 px-3 rounded transition-colors duration-200"
+                                    >
+                                        處理
+                                    </button>
+                                    <button
+                                        @click="processDeleteReservation(reservation.id)"
+                                        class="bg-red-600 hover:bg-red-500 text-white text-sm py-1 px-3 rounded transition-colors duration-200"
+                                    >
+                                        刪除
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- 已完成預留單區塊 -->
-                <div :class="[isDarkMode ? 'bg-gray-700' : 'bg-white', 'rounded-lg shadow-md overflow-hidden']">
-                    <div :class="[isDarkMode ? 'bg-gray-800' : 'bg-blue-500', 'py-3 px-4 text-white font-bold']">
-                        已完成預留單
+                <div class="space-y-8">
+                    <!-- 區塊標題 -->
+                    <div :class="[isDarkMode ? 'bg-gray-800 border-blue-500' : 'bg-blue-500 border-blue-300', 'p-3 rounded-lg mb-4 border-l-4']">
+                        <h2 class="text-xl font-bold text-white">已完成預留單</h2>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                            <tr :class="[isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700']">
-                                <th class="px-4 py-3 text-left">訂單</th>
-                                <th class="px-4 py-3 text-left">客戶</th>
-                                <th class="px-4 py-3 text-left">商品資訊</th>
-                                <th class="px-4 py-3 text-left">價格</th>
-                                <th class="px-4 py-3 text-left">完成時間</th>
-                                <th class="px-4 py-3 text-left">操作</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr v-if="filteredCompletedReservations.length === 0">
-                                <td
-                                    colspan="10"
-                                    class="px-4 py-8 text-center"
-                                    :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'"
-                                >
-                                    沒有已完成預留單
-                                </td>
-                            </tr>
-                            <tr
-                                v-for="reservation in filteredCompletedReservations"
-                                :key="reservation.id"
-                                :class="[
-                                        isDarkMode ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-50',
-                                        'border-b transition-colors duration-150'
-                                    ]"
-                            >
-                                <td class="px-4 py-3">{{ reservation.trade_no }}</td>
-                                <td class="px-4 py-3">{{ reservation.preorder_name || '未指定' }}</td>
-                                <td class="px-4 py-3">
-                                    <div v-if="reservation.item_quantities && reservation.item_quantities.length > 0">
-                                        <div v-for="(item, index) in reservation.item_quantities" :key="index" class="mb-1 last:mb-0">
-                                            <span class="font-medium">{{ item.item_name }}</span> x <span class="font-bold">{{ item.quantity }}</span>
+
+                    <!-- 無已完成預留單時顯示 -->
+                    <div v-if="filteredCompletedReservations.length === 0" :class="[isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-500', 'p-8 rounded-lg flex flex-col items-center justify-center']">
+                        <div class="text-4xl mb-4">📋</div>
+                        <p class="text-center">
+                            沒有已完成預留單<br>
+                            尚未有處理完畢的訂單
+                        </p>
+                    </div>
+
+                    <!-- 已完成預留單列表 -->
+                    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div
+                            v-for="reservation in filteredCompletedReservations"
+                            :key="reservation.id"
+                            :class="[isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800', 'rounded-lg overflow-hidden relative shadow-md']"
+                        >
+                            <!-- 內容層 -->
+                            <div class="p-4 flex flex-col">
+                                <div class="flex justify-between flex-wrap">
+                                    <div class="text-xl font-bold mb-2">{{ reservation.preorder_name || '未指定' }}</div>
+                                    <div class="text-sm px-2 py-1 rounded" :class="isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-700'">{{ reservation.trade_no }}</div>
+                                </div>
+
+                                <div class="text-lg mb-2" v-if="reservation.plurk_account">plurk: {{ reservation.plurk_account }}</div>
+
+                                <div class="mb-4">
+                                    <div class="text-sm uppercase tracking-wide mb-1" :class="isDarkMode ? 'text-blue-300' : 'text-blue-600'">商品明細</div>
+                                    <div v-if="reservation.item_quantities && reservation.item_quantities.length > 0"
+                                         :class="[isDarkMode ? 'bg-gray-700 bg-opacity-50 border-blue-400' : 'bg-blue-50 border-blue-300', 'p-3 rounded-lg border-l-2']">
+                                        <div v-for="(item, index) in reservation.item_quantities" :key="index"
+                                             class="mb-2 last:mb-0 flex justify-between items-center">
+                                            <span class="font-medium">{{ item.item_name }}</span>
+                                            <span :class="[isDarkMode ? 'bg-blue-600' : 'bg-blue-500', 'px-2 py-1 rounded text-sm font-bold text-white']">x {{ item.quantity }}</span>
                                         </div>
                                     </div>
-                                    <div v-else>{{ reservation.name }}</div>
-                                </td>
-                                <td class="px-4 py-3">${{ reservation.order_amount }}</td>
-                                <td class="px-4 py-3">{{ formatDate(reservation.updated_at) }}</td>
-                                <td class="px-4 py-3">
-                                    <div class="flex space-x-2">
-                                        <button
-                                            @click="processRollBackReservation(reservation.id)"
-                                            :class="[
-                                                    isDarkMode ? 'bg-blue-700 hover:bg-blue-600' : 'bg-blue-500 hover:bg-blue-400',
-                                                    'text-white text-sm py-1 px-3 rounded transition-colors duration-200'
-                                                ]"
-                                        >
-                                            回退
-                                        </button>
+                                    <div v-else :class="[isDarkMode ? 'bg-gray-700 bg-opacity-50 border-blue-400' : 'bg-blue-50 border-blue-300', 'p-3 rounded-lg border-l-2']">
+                                        {{ reservation.name }}
                                     </div>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                                </div>
+
+                                <div :class="[isDarkMode ? 'text-gray-200' : 'text-gray-700', 'text-lg font-semibold mb-2']">訂單總金額：${{ reservation.order_amount }}</div>
+                                <div class="text-sm mb-4" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">完成日期：{{ formatDate(reservation.updated_at) }}</div>
+
+                                <div class="mt-auto flex gap-2 justify-end">
+                                    <button
+                                        @click="processRollBackReservation(reservation.id)"
+                                        class="bg-amber-600 hover:bg-amber-500 text-white text-sm py-1 px-3 rounded transition-colors duration-200"
+                                    >
+                                        回退
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </template>
@@ -307,18 +295,17 @@ const formatDate = (dateString) => {
     }).format(date);
 };
 
-// 切換全選/取消全選
-const toggleSelectAll = () => {
-    selectAll.value = !selectAll.value;
-    pendingReservations.value.forEach(reservation => {
-        reservation.selected = selectAll.value;
-    });
-};
-
 // 切換深夜模式
 const toggleDarkMode = () => {
     isDarkMode.value = !isDarkMode.value;
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode.value));
+
+    // 將深色模式狀態應用到 document.body
+    if (isDarkMode.value) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
 };
 
 // 處理單筆預留單
@@ -441,6 +428,13 @@ onMounted(() => {
     const darkModePref = localStorage.getItem('darkMode');
     if (darkModePref !== null) {
         isDarkMode.value = JSON.parse(darkModePref);
+
+        // 將初始深色模式狀態套用到 body
+        if (isDarkMode.value) {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
     }
 
     // 載入上次選擇的場次，或使用第一個可用場次
@@ -499,61 +493,113 @@ const loadPreOrderData = async (sessionId) => {
     color-scheme: dark;
 }
 
-.dark-mode .border-b {
-    border-color: #3a3a3a !important;
+/* 卡片懸停效果 */
+.rounded-lg {
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* 深暗色背景下的輸入框和按鈕 */
-.dark-mode input,
-.dark-mode button,
-.dark-mode textarea,
-.dark-mode select {
-    color-scheme: dark;
+.rounded-lg:hover {
+    transform: translateY(-2px);
 }
 
-/* 過渡效果 */
-.dark-mode,
-.dark-mode *,
-body,
-* {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+/* 深色模式下的卡片懸停陰影 */
+.dark-mode .rounded-lg:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
 }
 
-/* 表格樣式 */
-table {
-    border-collapse: separate;
-    border-spacing: 0;
+/* 淺色模式下的卡片懸停陰影 */
+.rounded-lg:hover:not(.dark-mode .rounded-lg) {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-th, td {
-    white-space: nowrap;
-}
-
-/* 多項商品樣式 */
+/* 保留原有功能的樣式 */
 .last\:mb-0:last-child {
     margin-bottom: 0;
 }
 
 /* 響應式調整 */
-@media (max-width: 1280px) {
-    table {
-        display: block;
-        overflow-x: auto;
-    }
-
-    .px-4 {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-    }
-}
-
 @media (max-width: 768px) {
-    .flex-wrap {
-        flex-wrap: wrap;
+    .grid {
+        grid-template-columns: 1fr;
     }
 
     button {
-        margin-bottom: 0.5rem;
+        padding: 0.5rem 1rem;
     }
+}
+
+/* 動畫效果 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.grid > div {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* 按鈕樣式美化 */
+button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+/* 商品明細樣式 */
+.border-l-2 {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.dark-mode .border-l-2 {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.border-l-2:hover {
+    border-left-width: 4px;
+    transform: translateX(2px);
+}
+
+.uppercase.tracking-wide {
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    position: relative;
+    display: inline-block;
+}
+
+.uppercase.tracking-wide:after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 30px;
+    height: 2px;
+}
+
+.dark-mode .uppercase.tracking-wide:after {
+    background-color: #60a5fa;
+}
+
+.uppercase.tracking-wide:not(.dark-mode .uppercase.tracking-wide):after {
+    background-color: #3b82f6;
+}
+
+/* 貨幣數值顯示強調 */
+.font-semibold {
+    position: relative;
+}
+
+/* 改進淺色/深色模式切換的過渡效果 */
+body, *, .dark-mode, .dark-mode * {
+    transition: background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 </style>
